@@ -25,6 +25,16 @@ For reference, the supported original ROM's SHA-1 after byte-order normalization
 6d96743d46f8c0cd0edb0ec5600b003c89b93755
 ```
 
+## Screenshots
+
+| **Main Windowr** | **Editing a Trackr** |
+| :---: | :---: |
+| <img width="450" alt="Main Window" src="https://github.com/user-attachments/assets/7fdb5977-9173-4058-beba-ee463e78584e" /> | <img width="450" alt="python_CdKQm3xFLQ" src="https://github.com/user-attachments/assets/8a7f9015-c64a-40b5-b977-63749135e75c" /> |
+| Main window showing the starting hub | Editing Ancient Lake |
+| **Materials and Textures** | **Object Models and Animation** |
+| <img width="450" alt="python_hWjsykT2zW" src="https://github.com/user-attachments/assets/41f6cd9c-ea47-436e-805b-b4e2a4c6002c" /> | <img width="450" alt="python_RHeS5TLKAR" src="https://github.com/user-attachments/assets/adf3ba94-c2b9-4696-aac7-8c5613ae8b5f" /> |
+| Change track materials and driving surfaces, or replace textures with your own artwork. | Preview animations and export models for editing in Blender. |
+
 ## Installation and launch
 
 1. Extract the whole release folder somewhere you can write files. Keep
