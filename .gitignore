@@ -12,6 +12,7 @@ artifacts/
 *.dkrproj
 research/
 # Personal Blender/test assets may contain extracted game artwork.
-/*.obj
-/*.mtl
+*.obj
+*.mtl
+*_textures_*/
 /test tracks/

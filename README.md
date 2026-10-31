@@ -1,6 +1,8 @@
 # DKR Workshop
 
-**v0.26.0 · Public beta**
+**v0.27.0 · Public beta**
+
+[What's new: visual object catalog and complete object artwork export](docs/RELEASE_NOTES_0.27.0.md).
 
 DKR Workshop is a desktop editor for Diddy Kong Racing on Nintendo 64. Open an
 original **USA Rev 1 / USA 1.1 (`us.v80`) ROM**, edit courses and shared assets,
@@ -155,6 +157,12 @@ Static object meshes support added/extruded faces. Animated models retain their
 existing topology and animation groups. The model editor has its own preview and
 staged Apply workflow. Track faces use batch texture assignments; changing one
 batch can affect several faces. Driving surfaces are separate material data.
+
+**Object Models & Animation → Export OBJ + artwork…** exports the current base
+mesh with a companion MTL and referenced PNG texture folder. Keep them together
+when opening the OBJ in Blender. Both static and animated meshes retain UVs,
+colors and `batch_N` materials; clips export separately as JSON. See
+[Object artwork export](docs/OBJECT_ARTWORK_EXPORT.md).
 
 ## Artwork and animation preview
 

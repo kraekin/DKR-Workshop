@@ -50,9 +50,12 @@ Verified with1,797 full tests, all390 lossless mesh round trips, static template
 coverage, Blender4.4 Scale1/1 edits on animated240/static256/260, native import
 modes/Apply/Undo/Redo and RTX graphics smoke. See STATUS.md for current results.
 
-**Export mesh OBJ…** writes the draft's base mesh. Static exports carry colors,
-UVs and named `batch_N` materials for the new rebuilding workflow. Animated
-exports retain their original position-only format. **Import mesh OBJ…** uses
+**Export OBJ + artwork…** writes the draft's base mesh, a companion MTL and
+referenced PNG textures. Static and animated exports carry colors, UVs and named
+`batch_N` materials. Keep the three parts together for textured Blender import.
+Playback does not change the exported base pose; clips use their separate JSON
+exchange. See [Object artwork export](OBJECT_ARTWORK_EXPORT.md).
+**Import mesh OBJ…** uses
 the selected mode: Automatic reshapes first, then rebuilds static topology when
 needed. The following restrictions apply to **Reshape positions only** and
 models with animation clips:
@@ -64,7 +67,8 @@ models with animation clips:
   vertices used by attachments or collision spheres. Do not merge, subdivide,
   remesh, decimate, add/delete topology or use modifiers that reorder it.
 - Export only this mesh with the same axes and scale1. Disable modifiers, extra
-  triangulation, materials, UVs and normals for this position-only exchange.
+  triangulation and normals. Materials/UVs may remain for visual exchange; the
+  fixed-topology importer applies positions only.
   Blender4.4 has no separate Keep Vertex Order checkbox in its current exporter.
   The editor checks the actual returned vertex/face layout.
 - Reimport into the model window. XYZ is multiplied by100, then rounds to signed16 integers. Counts,

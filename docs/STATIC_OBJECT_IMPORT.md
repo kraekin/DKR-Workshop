@@ -81,9 +81,10 @@ stages the original layout for Preview/Apply.
 
 Export a fresh OBJ from this model window first. Static exports now carry vertex
 colors, UVs and **`batch_0`, `batch_1`, …** material names. Each name identifies
-one existing texture/lighting/render signature in the current model. Texture
-images remain in the ROM; the OBJ does not export a PNG/MTL artwork package.
-The [Texture Browser](IMAGE_ASSETS.md) can export/edit the actual PNG artwork.
+one existing texture/lighting/render signature in the current model.
+**Export OBJ + artwork…** now includes a companion MTL and referenced PNG
+textures; keep the package together for Blender import. The
+[Texture Browser](IMAGE_ASSETS.md) remains the PNG replacement workflow.
 
 Use the same axes/scale as the [Blender track guide](BLENDER_TRACK_GUIDE.md):
 

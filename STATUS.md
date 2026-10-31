@@ -1,22 +1,29 @@
-# Creator workflow — visual catalog verified (2026-10-30)
+# Creator workflow v0.27.0 — complete (2026-10-30)
 
-Visual Add Objects catalog implemented: all 304 types retain their templates,
-map/XYZ/structural writer semantics; searchable/category-filtered thumbnail cards,
-current-project artwork, selected 3D/sprite/texture previews and safe cancellation.
-No favorites/presets/groups. Docs: docs/VISUAL_OBJECT_CATALOG.md.
-Local decomp confirms existing 0x78 ObjectHeader, artwork pointer0x10/kind0x53/
-signed count0x55; existing 0x58 ObjectModel and 12-byte sprite parsers reused.
-No new ROM field, parser layout or project version introduced.
+Implemented the visual Add Objects catalog and complete object mesh artwork
+export. All304 catalog types retain map/XYZ/templates/history semantics, with
+ROM/project thumbnails, search/category filters and selected 3D/sprite previews.
+Object Models & Animation → Export OBJ + artwork writes current base-mesh drafts,
+batch_N MTL and referenced PNG frames with current project pixels, UVs/RGBA,
+compact units and original vertex rows. Atomic publication/sidecar protections
+reuse the track exporter. No favorites/presets/groups or autosave were added.
 
-Gate: 1,825 full tests passed in369.39s, final15 catalog/grid/label checks and
-six catalog/drag-cancel regressions pass. Isolated native catalog screenshots/
-filtering/preview pass on RTX4060 GL3.3. Full native smoke passes at63.0 FPS/
-4x MSAA after correcting stale smoke labels/axes/editor lookup, and a preexisting
-level-switch ordering bug: cancel drag before committing pending editor cells.
-Original ROM/user editors preserved; no emulator/gameplay run. Test exports are
-owned temporary fixtures, not user review ROMs.
+Verification: 1,841 full tests pass in432.45s with zero errors/failures/skips;
+131 Python files parse; core imports remain Qt/GL-free. All390 stock meshes
+export/reimport byte-identically. Native catalog/export and full editor smoke
+pass on RTX4060 GL3.3/4x MSAA (62.9 FPS). Background Blender4.4 loads MTL/PNGs
+and round-trips static256/260 plus animated240, including a pending model draft.
+Regression also fixes preexisting level-switch drag cancellation order; stale
+smoke assertions now target current axes/labels/visible editors.
 
-Next authorized milestone: complete object mesh artwork export (OBJ/MTL/PNG),
-preserving existing vertex identities, compact units and batch_N import names.
-Finish that milestone with focused/full/native checks before user review.
-All commits stay local; no push/publication. Autosave remains deferred.
+No new binary layouts/writers/project version: retain 0x78 ObjectHeader,
+0x58 ObjectModel, 10-byte vertices, 16-byte faces and 12-byte batches/sprites.
+Original us.v80 SHA-1 remains6d96743d46f8c0cd0edb0ec5600b003c89b93755.
+Temporary test ROM/project fixtures removed. User editors/files are preserved;
+no emulator/gameplay run. JUnit: artifacts/creator-workflow-full-tests.xml.
+Guides: docs/VISUAL_OBJECT_CATALOG.md, docs/OBJECT_ARTWORK_EXPORT.md;
+release notes: docs/RELEASE_NOTES_0.27.0.md. Source launch: root DKR Workshop.cmd.
+
+Local catalog commit0f3fd08; export/version/docs saved as a second local feature
+checkpoint. Nothing pushed or published. Next: user review of v0.27.0; no further
+feature milestone authorized. Prior DKR-R handoff stays in the feature report.

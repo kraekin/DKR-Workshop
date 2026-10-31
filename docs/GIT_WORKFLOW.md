@@ -32,7 +32,8 @@ changes before committing. Do not use a hard reset or clean to discard local
 ROMs, projects, research or personal assets.
 
 ROMs, `.dkrproj` files, research checkouts, environments/caches, build/dist output,
-artifacts, root OBJ/MTL exports and `test tracks/` are ignored. The application
+artifacts, OBJ/MTL exports, generated `*_textures_*/` image folders and
+`test tracks/` are ignored. The application
 icon is tracked because it is already part of the public release. Ignored files
 stay on disk; they are not included in commits.
 

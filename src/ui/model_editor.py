@@ -15,9 +15,10 @@ from PySide6.QtWidgets import (QCheckBox, QComboBox, QDialog, QDialogButtonBox,
 from src.core.editing import EditSession
 from src.core.model_editing import (AssetKey, ModelPlan, animation_document,
     asset_uses, clip_offsets, edit_mesh, encode_clip, import_animation,
-    import_mesh_obj, mesh_obj, plan_models, structures)
+    import_mesh_obj, plan_models, structures)
 from src.core.object_models import AnimationClip, ModelInstance, ObjectLibrary, ObjectModel
-from src.core.object_rebuild import compile_static, rebuild_obj
+from src.core.object_rebuild import compile_static
+from src.core.exporter import export_object_obj
 from src.core.objects import ObjectDefinition
 from src.core.rom import AssetType, RomImage
 from src.renderer.viewport import Viewport
@@ -146,7 +147,8 @@ class ModelEditorDialog(QDialog):
         mode_row.addWidget(self.obj_mode, 1)
         files = QHBoxLayout()
         rl.addLayout(files)
-        self.export_obj = QPushButton('Export mesh OBJ…', right)
+        self.export_obj = QPushButton('Export OBJ + artwork…', right)
+        self.export_obj.setToolTip('Export the base mesh with batch materials, UVs, vertex colors and referenced PNG textures.')
         self.export_obj.clicked.connect(self._export_obj)
         self.import_obj = QPushButton('Import mesh OBJ…', right)
         self.import_obj.clicked.connect(self._import_obj)
@@ -458,13 +460,16 @@ class ModelEditorDialog(QDialog):
         self._load_model()
 
     def _export_obj(self) -> None:
-        path, _ = QFileDialog.getSaveFileName(self, 'Export object mesh', f'model_{self.current}.obj', 'Wavefront OBJ (*.obj)')
+        path, _ = QFileDialog.getSaveFileName(self, 'Export object mesh and artwork', f'model_{self.current}.obj', 'Wavefront OBJ (*.obj)')
         if path:
             try:
-                static = self.library is not None and self.library.clip_count(self.current) == 0
-                Path(path).write_text(rebuild_obj(self._raw(), self.session.asset_source) if static else mesh_obj(self._raw()), encoding='utf-8')
-                self.message.setText('Mesh exported at 1:100 scale. Leave Blender import/export Scale at 1; import restores model units. '
-                    'Static OBJ carries batch_N materials and UVs. Keep reference vertex rows ordered; animated meshes retain topology.')
+                destination = Path(path)
+                if not destination.suffix:
+                    destination = destination.with_suffix('.obj')
+                result = export_object_obj(self._raw(), destination, source=DraftSource(self.session, self.drafts), model_id=self.current)
+                self.message.setText(f'Base mesh, MTL and {len(result.texture_paths)} PNG texture(s) exported at 1:100 scale. '
+                    'Keep the OBJ, MTL and texture folder together. Blender Scale 1; keep vertex rows and batch_N names. '
+                    'Animated meshes retain topology; clips export separately as JSON.')
             except (OSError, ValueError) as error:
                 self.message.setText(str(error))
 
