@@ -9,7 +9,25 @@ original **USA Rev 1 / USA 1.1 (`us.v80`) ROM**, edit courses and shared assets,
 save a project, and export a separate edited ROM. Game artwork is loaded from
 your ROM; it is not bundled with the application.
 
+## Screenshots
+
+| **Main Window** | **Editing a Track** |
+| :---: | :---: |
+| <img width="400" alt="Main Window" src="https://github.com/user-attachments/assets/e324a320-375d-4339-8795-064149c7830c" /> | <img width="400" alt="Ancient Lake" src="https://github.com/user-attachments/assets/e3fbb68f-8071-4cd8-afb7-9e7b6fc66994" /> |
+| Main window showing the starting hub | Editing Ancient Lake |
+| **Materials and Textures** | **Object Models and Animation** |
+| <img width="400" alt="Materials and Textures" src="https://github.com/user-attachments/assets/41f6cd9c-ea47-436e-805b-b4e2a4c6002c" /> | <img width="400" alt="Objects and Animations" src="https://github.com/user-attachments/assets/adf3ba94-c2b9-4696-aac7-8c5613ae8b5f" /> |
+| Change track materials and driving surfaces, or replace textures with your own artwork. | Preview animations and export models for editing in Blender. |
+
 ## Getting started
+
+[Download the Windows EXE from Releases](https://github.com/kraekin/DKR-Workshop/releases)
+to run without installing Python. Maintainers can also request a build from
+[GitHub Actions](https://github.com/kraekin/DKR-Workshop/actions/workflows/windows-build.yml).
+See [automated Windows builds](docs/WINDOWS_BUILDS.md) for version tags, draft
+releases and manual downloads.
+
+To run from source:
 
 Python 3.11+ and an OpenGL 3.3 Core desktop graphics driver are required.
 From the project directory in PowerShell:

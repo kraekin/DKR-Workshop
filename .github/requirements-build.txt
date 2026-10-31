@@ -1,0 +1,9 @@
+# Windows x64 / CPython 3.12 release toolchain. Update deliberately and verify CI.
+Nuitka==4.2.1
+ordered-set==4.1.0
+PySide6==6.11.2
+PyOpenGL==3.1.10
+numpy==2.2.6
+Pillow==11.3.0
+zstandard==0.23.0
+pytest==8.4.2

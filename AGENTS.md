@@ -5,6 +5,9 @@
 This folder tracks the history of https://github.com/kraekin/DKR-Workshop.
 Work and commits stay local. The user performs remote pushes; do not push or
 otherwise publish repository changes without explicit later authorization.
+On 2026-10-30 the user explicitly authorized pushing the completed v0.27.1
+updates and setting up/validating GitHub-hosted Nuitka builds. This authorization
+covers the related workflow, documentation and fixes needed for that setup.
 Preserve local ROMs, research/build directories, personal test assets and running
 editors. Keep proprietary assets excluded from commits.
 

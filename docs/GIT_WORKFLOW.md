@@ -5,10 +5,14 @@ https://github.com/kraekin/DKR-Workshop.git as `origin`. Local `main` follows
 `origin/main`; setup retained the existing GitHub history instead of creating
 an unrelated initial commit. GitHub was at `5c487f3` when fetched on 2026-10-30.
 
-Changes and commits stay local until the user explicitly pushes them. Agents
+Changes and commits stay local until the user explicitly authorizes a push. Agents
 must not push, create remote branches/PRs or publish changes without later
 explicit authorization. Fetching downloads remote history and does not upload
 local files.
+
+On 2026-10-30 the user authorized pushing the completed v0.27.1 work and adding
+and validating automated Windows builds. This supersedes the initial no-push
+instruction for that work; it does not authorize unrelated future publishing.
 
 From the project directory, inspect work with:
 
@@ -37,10 +41,8 @@ artifacts, OBJ/MTL exports, generated `*_textures_*/` image folders and
 icon is tracked because it is already part of the public release. Ignored files
 stay on disk; they are not included in commits.
 
-The setup checkpoint preserves the existing local README, which differs from
-the GitHub release README. In particular, the local guide does not contain the
-screenshots added on GitHub. Review that documentation difference before a later
-push; the original release README remains available in Git history.
+The README combines the local source guide with the screenshots previously
+added on GitHub. The original release README remains available in Git history.
 
 When ready, the user can fetch and review ahead/behind status:
 
@@ -51,8 +53,8 @@ git log --oneline origin/main..HEAD
 ```
 
 If the remote has advanced, reconcile its changes before publishing. The user
-can then push explicitly with `git push origin main`. No push is part of setup.
+can then push explicitly with `git push origin main`.
 
-Next creator-workflow scope: improve the existing Add Objects catalog visually,
-then add complete object artwork export. Favorites, presets and reusable groups
-are excluded.
+The visual Add Objects catalog, object artwork export and camera-ground placement
+fix are complete in v0.27.1. Favorites, presets and reusable groups remain excluded.
+See [automated Windows builds](WINDOWS_BUILDS.md) for release tags and manual CI.
