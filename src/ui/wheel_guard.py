@@ -1,4 +1,4 @@
-"""Keep wheel gestures for scrolling rather than changing editor values."""
+"""Allow wheel editing only in focused value controls; otherwise scroll panes."""
 from __future__ import annotations
 
 from PySide6.QtCore import QEvent, QObject, Qt
@@ -30,9 +30,12 @@ class ValueWheelGuard(QObject):
             if isinstance(control, QLineEdit) and _is_value_control(control.parentWidget()):
                 control = control.parentWidget()
             if _is_value_control(control):
+                focus = QApplication.focusWidget()
+                if control.hasFocus() or (focus is not None and control.isAncestorOf(focus)):
+                    return False
                 self._scroll_parent(control, event)
-                # Consume even when no pane can scroll. Neither focused nor
-                # unfocused fields may turn a scroll gesture into an edit.
+                # Consume even when no pane can scroll. Hovering must never
+                # turn an unfocused field into an accidental wheel edit.
                 event.accept()
                 return True
         return False

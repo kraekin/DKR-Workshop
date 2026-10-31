@@ -16,9 +16,9 @@
 - **Direct patch export:** export BPS or xdelta patches from the current project
   without first saving an edited ROM or installing a separate patch tool.
   Both formats reconstruct the same validated edited ROM as normal ROM export.
-- **Safer scrolling:** scrolling over spinners, dropdowns or sliders now scrolls
-  their pane without changing values, including fields that already have focus.
-  Use clicks, typing or arrow keys to adjust them; viewport zoom is unchanged.
+- **Safer scrolling:** scrolling over unfocused spinners, dropdowns or sliders
+  scrolls their pane without changing values or taking focus. Click or tab into
+  a control to adjust it with the wheel. Viewport zoom is unchanged.
 
 Existing projects remain compatible. Minimap generation replaces an existing
 sprite's first-frame pixels; batch images retain existing dimensions, formats,

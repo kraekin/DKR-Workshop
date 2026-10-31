@@ -1,4 +1,4 @@
-"""Wheel input scrolls panes without editing values or stealing field focus."""
+"""Unfocused controls scroll panes; focused controls retain wheel editing."""
 from __future__ import annotations
 
 from collections.abc import Callable, Iterator
@@ -70,7 +70,7 @@ def value(widget: QWidget) -> object:
 @pytest.mark.parametrize('factory', [QSpinBox, QDoubleSpinBox, combo,
     lambda: combo(editable=True), QSlider, QDial, QDateTimeEdit])
 @pytest.mark.parametrize('focused', [False, True])
-def test_wheel_scrolls_pane_and_preserves_control_and_focus(
+def test_wheel_edits_only_the_focused_control(
     app: QApplication, pane: tuple[QScrollArea, QVBoxLayout],
     factory: Callable[[], QWidget], focused: bool,
 ) -> None:
@@ -88,8 +88,12 @@ def test_wheel_scrolls_pane_and_preserves_control_and_focus(
     focus = app.focusWidget()
     before = value(control)
     wheel(control)
-    assert value(control) == before
-    assert scroll.verticalScrollBar().value() > 0
+    if focused:
+        assert value(control) != before
+        assert scroll.verticalScrollBar().value() == 0
+    else:
+        assert value(control) == before
+        assert scroll.verticalScrollBar().value() > 0
     assert app.focusWidget() is focus
     assert control.focusPolicy() != Qt.FocusPolicy.WheelFocus
 
@@ -101,8 +105,11 @@ def test_wheel_over_embedded_line_edit_scrolls_parent(
     scroll, layout = pane
     control = factory()
     layout.addWidget(control)
+    other = QLineEdit()
+    layout.addWidget(other)
     scroll.show()
     app.processEvents()
+    other.setFocus()
     before = value(control)
     wheel(control.findChild(QLineEdit))
     assert value(control) == before
@@ -125,7 +132,7 @@ def test_click_and_keyboard_still_edit_focused_values(app: QApplication) -> None
     QTest.mouseClick(spin, Qt.MouseButton.LeftButton, pos=QPoint(spin.width()-6, 5))
     assert spin.value() == 24
     wheel(spin)
-    assert spin.value() == 24
+    assert spin.value() == 23
     spin.close()
     spin.deleteLater()
 
@@ -138,6 +145,7 @@ def test_horizontal_scroll_and_scrollbar_wheel_remain_available(
     layout.addWidget(control)
     scroll.show()
     app.processEvents()
+    control.clearFocus()
     wheel(control, angle=QPoint(-120, 0))
     assert scroll.horizontalScrollBar().value() > 0
     wheel(scroll.verticalScrollBar())
@@ -169,6 +177,7 @@ def test_table_cell_editor_scrolls_table_without_editing(app: QApplication) -> N
     table.setCellWidget(0, 0, editor)
     table.show()
     app.processEvents()
+    table.setFocus()
     wheel(editor)
     assert table.verticalScrollBar().value() > 0
     assert editor.value() == 50
@@ -192,6 +201,7 @@ def test_wheel_forwarding_preserves_touchpad_data_and_stops_at_dialog(app: QAppl
     inner.show()
     outer.show()
     app.processEvents()
+    spin.clearFocus()
     event = wheel(spin, angle=QPoint(0, -15), pixel=QPoint(0, -9),
                   phase=Qt.ScrollPhase.ScrollUpdate, inverted=True)
     received = inner.received
@@ -212,6 +222,7 @@ def test_wheel_forwarding_preserves_touchpad_data_and_stops_at_dialog(app: QAppl
     dialog_spin = QSpinBox(dialog)
     dialog.show()
     app.processEvents()
+    dialog_spin.clearFocus()
     wheel(dialog_spin)
     assert outer.received is None
     dialog.close()
@@ -242,6 +253,7 @@ def test_course_builder_scrolling_creates_no_draft_edits(app: QApplication) -> N
     scroll.show()
     app.processEvents()
     spin = next(iter(builder.lane_values.values()))
+    spin.clearFocus()
     scroll.ensureWidgetVisible(spin)
     scroll.verticalScrollBar().setValue(0)
     builder._record_history()
