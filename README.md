@@ -1,8 +1,8 @@
 # DKR Workshop
 
-**v0.27.1 · Public beta**
+**v0.28.0 · Public beta**
 
-[What's new: visual object catalog and complete object artwork export](docs/RELEASE_NOTES_0.27.0.md).
+[What's new: custom-course finishing and patch export](docs/RELEASE_NOTES_0.28.0.md).
 
 DKR Workshop is a desktop editor for Diddy Kong Racing on Nintendo 64. Open an
 original **USA Rev 1 / USA 1.1 (`us.v80`) ROM**, edit courses and shared assets,
@@ -57,6 +57,8 @@ view-only. Opening a modified ROM does not restore a project's editing history.
 - **ROM Budget and Project Changes…** shows the exact storage budget, changed
   assets and known shared uses. ROM padding is storage space, separate from
   the game's runtime RAM and object pools.
+- **Export ROM patch (BPS / xdelta)…** writes a verified patch without an
+  intermediate edited ROM. Apply it to the original USA Rev 1 big-endian `.z64`.
 
 Undo/Redo (`Ctrl+Z`, `Ctrl+Y` or `Ctrl+Shift+Z`) spans objects, assets and levels.
 The title's asterisk marks unsaved project changes. Shared assets can affect
@@ -112,11 +114,12 @@ The right inspector has **Level**, **Objects**, **Geometry**, **Settings** and
 | Tools → Placement | Group transforms, snapping, alignment and surface placement |
 | Tools → Routes | Checkpoint AI lanes and directed AI-node links |
 | Geometry → Materials | Visual batch material assignments, shared course materials, UVs, colors and rendering |
-| Tools → Minimap | Map sprite, offsets, marker alignment, tint and PNG shortcut |
+| Tools → Minimap | Generate map artwork, align markers, edit tint/settings and exchange PNGs |
 | Tools → Cinematics | Actor/camera path nodes, timing, events and preview |
 | Edit → Course Builder… | Clear placed objects, draw checkpoints and create a start grid |
+| Edit → Route finishing / alternates… | Place paired branches, generate lanes and inspect continuity |
 | Edit → Course Names… | Existing English, German and French course names |
-| Edit → Texture & Sprite Browser / PNG… | PNG export/replacement, sprite anchors and texture timing |
+| Edit → Texture & Sprite Browser / PNG… | Individual/batch PNG exchange, animation sheets, sprite anchors and timing |
 | Edit → Global Object Properties… | Shared object definitions and compatible artwork references |
 | Edit → Object Models & Animation… | Shared model vertices/UVs, static topology and animation clips |
 

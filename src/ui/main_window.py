@@ -116,12 +116,14 @@ class MainWindow(QMainWindow):
         self.object_inspector.routes.preview_changed.connect(self._route_preview)
         self.object_inspector.routes.pick_requested.connect(self._pick_connection)
         self.object_inspector.routes.build_requested.connect(self._show_course_builder)
+        self.object_inspector.routes.finish_requested.connect(self._show_route_authoring)
         self.object_inspector.tools.currentChanged.connect(self._route_preview)
         self.object_inspector.tabs.currentChanged.connect(self._route_preview)
         self.object_inspector.materials.edit_requested.connect(self._edit_materials)
         self.object_inspector.materials.image_requested.connect(lambda index: self._open_image_browser(AssetType.TEXTURES_3D, index))
         self.object_inspector.minimap.edit_requested.connect(self._edit_minimap)
         self.object_inspector.minimap.revert_requested.connect(self._revert_minimap)
+        self.object_inspector.minimap.generate_requested.connect(self._generate_minimap)
         self.object_inspector.minimap.image_requested.connect(lambda index: self._open_image_browser(AssetType.SPRITES, index))
         self.object_inspector.materials.revert_requested.connect(self._revert_materials)
         self.object_inspector.materials.selection_changed.connect(self._material_preview)
@@ -285,6 +287,8 @@ class MainWindow(QMainWindow):
         self.course_builder_action = QAction('Course Builder…', self)
         self.course_builder_action.setObjectName('openCourseBuilderMenu')
         self.course_builder_action.triggered.connect(self._show_course_builder)
+        self.route_authoring_action = QAction('Route finishing / alternates…', self)
+        self.route_authoring_action.triggered.connect(self._show_route_authoring)
         file_menu.addSeparator()
         self.open_project_action = QAction("Open &Project…", self)
         self.open_project_action.setShortcut(QKeySequence("Ctrl+Shift+O"))
@@ -300,6 +304,9 @@ class MainWindow(QMainWindow):
         self.save_rom_action.setStatusTip("Write a new .z64 with edited objects and level settings and validated N64 checksums")
         self.save_rom_action.triggered.connect(self._choose_save_rom)
         file_menu.addActions([self.open_project_action, self.save_project_action, self.save_project_as_action, self.save_rom_action])
+        self.save_patch_action = QAction("Export ROM patch (BPS / xdelta)…", self)
+        self.save_patch_action.triggered.connect(self._choose_save_patch)
+        file_menu.addAction(self.save_patch_action)
         self.export_report_action = QAction("ROM &Budget and Project Changes…", self)
         self.export_report_action.triggered.connect(self._show_export_report)
         file_menu.addAction(self.export_report_action)
@@ -328,7 +335,7 @@ class MainWindow(QMainWindow):
         self.delete_objects_action.triggered.connect(self._delete_objects)
         edit_menu.addActions([self.add_object_action, self.duplicate_objects_action, self.delete_objects_action])
         edit_menu.addSeparator()
-        edit_menu.addActions([self.course_builder_action,self.course_names_action,self.image_browser_action,self.global_objects_action,self.model_editor_action])
+        edit_menu.addActions([self.course_builder_action,self.route_authoring_action,self.course_names_action,self.image_browser_action,self.global_objects_action,self.model_editor_action])
         view_menu = self.menuBar().addMenu("&View")
         view_menu.addActions([self.level_dock.toggleViewAction(), self.inspector_dock.toggleViewAction()])
         view_menu.addAction(self.camera_toolbar.toggleViewAction())
@@ -1024,6 +1031,26 @@ class MainWindow(QMainWindow):
         except (ValueError, OSError) as error:
             self.object_inspector.minimap.message.setText(f"Minimap edit rejected: {error}")
 
+    def _show_route_authoring(self) -> None:
+        self._commit_editor()
+        if self.edit_session is None or self.selected_level is None:
+            return
+        from src.ui.route_authoring import RouteAuthoringDialog
+        dialog = RouteAuthoringDialog(self.edit_session, self.selected_level.index, self)
+        if dialog.exec():
+            self._refresh_edits(None)
+        dialog.deleteLater()
+
+    def _generate_minimap(self) -> None:
+        self._commit_editor()
+        if self.edit_session is None or self.current_model is None:
+            return
+        from src.ui.minimap_generator import MinimapGeneratorDialog
+        dialog = MinimapGeneratorDialog(self.edit_session, self.current_model.model_id, self)
+        dialog.assets_changed.connect(self._refresh_asset)
+        dialog.exec()
+        dialog.deleteLater()
+
     def _revert_minimap(self) -> None:
         self._commit_editor()
         if self.edit_session is not None and self.current_model is not None:
@@ -1371,6 +1398,10 @@ class MainWindow(QMainWindow):
                 self._refresh_model_assets()
             elif section in IMAGE_SECTIONS:
                 self._refresh_graphics()
+                # Generated minimaps commit image tiles and projection fields
+                # together. Refresh both owners on Apply, Undo and Redo.
+                if self.current_model is not None and self.edit_session.track_model(self.current_model.model_id).raw_data != self.current_model.raw_data:
+                    self._refresh_track_model(self.current_model.model_id)
             else:
                 self._refresh_level_settings(index)
 
@@ -1445,6 +1476,7 @@ class MainWindow(QMainWindow):
         self.global_objects_action.setEnabled(session is not None)
         self.model_editor_action.setEnabled(session is not None)
         self.course_builder_action.setEnabled(session is not None and self.selected_level is not None and self.current_model is not None)
+        self.route_authoring_action.setEnabled(session is not None and self.selected_level is not None and self.current_model is not None)
         self.export_report_action.setEnabled(session is not None)
         if session is None:
             self._budget_label.clear()
@@ -1452,7 +1484,7 @@ class MainWindow(QMainWindow):
             report = session.export_report()
             self._budget_label.setText(f"ROM free: {report.remaining_bytes / 1024:.1f} KiB" if report.can_export else "ROM export blocked")
             self._budget_label.setToolTip(report.summary + "\nFile → ROM Budget and Project Changes")
-        for action in (self.save_project_action, self.save_project_as_action, self.save_rom_action):
+        for action in (self.save_project_action, self.save_project_as_action, self.save_rom_action, self.save_patch_action):
             action.setEnabled(session is not None)
         self.undo_action.setEnabled(session is not None and session.can_undo)
         self.redo_action.setEnabled(session is not None and session.can_redo)
@@ -1831,6 +1863,23 @@ class MainWindow(QMainWindow):
                                runtime_source=self.edit_session.rom).exec()
 
     @Slot()
+    def _choose_save_patch(self) -> None:
+        self._commit_editor()
+        if self.edit_session is None:
+            return
+        name = self.edit_session.project_path.stem if self.edit_session.project_path is not None else "DKR - edited"
+        chosen, selected = QFileDialog.getSaveFileName(self, "Export patch for original USA Rev 1 big-endian ROM",
+            str(self._last_directory / name), "BPS patch (*.bps);;xdelta patch (*.xdelta)")
+        if chosen:
+            path = Path(chosen)
+            if not path.suffix:
+                path = path.with_suffix(".xdelta" if selected.startswith("xdelta") else ".bps")
+            try:
+                self.edit_session.save_patch(path)
+                self.statusBar().showMessage(f"Saved {path.name}. Apply to the original USA Rev 1 big-endian .z64 ROM. Save your .dkrproj separately to retain editing history.", 16000)
+            except (ValueError, OSError) as error:
+                QMessageBox.warning(self, "Cannot export patch", str(error))
+
     def _choose_save_rom(self) -> None:
         self._commit_editor()
         if self.edit_session is None:

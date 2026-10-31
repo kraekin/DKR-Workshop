@@ -1474,6 +1474,28 @@ class EditSession:
         sections, report = self._prepare_export()
         return _assemble_rom(self.rom, sections, report)
 
+    def save_patch(self, path: Path) -> Path:
+        from src.core.patches import encode_bps, encode_xdelta, apply_bps, apply_generated_xdelta
+        import json
+        suffix = path.suffix.casefold()
+        if suffix not in (".bps", ".xdelta"):
+            raise EditError("Choose a .bps or .xdelta patch filename")
+        if self.rom.source_path is not None and path.resolve() == self.rom.source_path.resolve():
+            raise EditError("Choose a new file; the original ROM is read-only")
+        target = self.build_rom()
+        source = self.rom.data  # Loader-normalized big-endian original, including .v64/.n64 inputs.
+        if suffix == ".bps":
+            metadata = json.dumps({"application": "DKR Workshop", "base": "Diddy Kong Racing USA Rev 1 (big-endian .z64)",
+                                   "source_sha1": REV1_SHA1}, separators=(",", ":")).encode("utf-8")
+            patch = encode_bps(source, target, metadata)
+            verified = apply_bps(source, patch)
+        else:
+            patch = encode_xdelta(source, target)
+            verified = apply_generated_xdelta(source, patch)
+        if verified != target:
+            raise EditError("Patch verification failed; no patch was written")
+        return _atomic_write(path, patch, self.rom.source_path)
+
     def save_rom(self, path: Path) -> Path:
         if path.suffix.casefold() != ".z64":
             raise EditError("Exported ROMs use big-endian .z64 format")

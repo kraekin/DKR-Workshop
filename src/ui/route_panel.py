@@ -15,6 +15,7 @@ class RoutePanel(QWidget):
     preview_changed = Signal()
     pick_requested = Signal(int)
     build_requested = Signal()
+    finish_requested = Signal()
 
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
@@ -29,6 +30,9 @@ class RoutePanel(QWidget):
         self.course_builder.setObjectName('openCourseBuilder')
         self.course_builder.clicked.connect(self.build_requested)
         layout.addWidget(self.course_builder)
+        self.finish = QPushButton('Route finishing / alternates…', self)
+        self.finish.clicked.connect(self.finish_requested)
+        layout.addWidget(self.finish)
         self.list = QTreeWidget(self)
         self.list.setHeaderLabels(["Existing routes", "Map / entry"])
         self.list.setColumnWidth(0, 230)
@@ -97,6 +101,7 @@ class RoutePanel(QWidget):
                      sets: tuple[int, int, int], enabled: bool) -> None:
         self._loading = True
         self.course_builder.setEnabled(enabled)
+        self.finish.setEnabled(enabled)
         self.obj = obj
         key = tuple((o.key, o.position, o.parameters) for o in objects if o.definition.behavior_id in (13, 16)), sets
         if self._context != key:

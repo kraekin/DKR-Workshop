@@ -7,7 +7,7 @@ from PySide6.QtCore import Qt, Signal, QTimer, QSize
 from PySide6.QtGui import QImage, QPixmap, QIcon, QPainter, QColor, QAction, QKeySequence
 from PySide6.QtWidgets import (QDialog, QWidget, QVBoxLayout, QHBoxLayout, QGridLayout,
     QLabel, QComboBox, QLineEdit, QTreeWidget, QTreeWidgetItem, QSplitter, QPushButton,
-    QSpinBox, QFileDialog, QTextEdit)
+    QSpinBox, QFileDialog, QTextEdit, QAbstractItemView)
 
 from src.core.editing import EditSession
 from src.core.rom import RomImage, DecompAssets, AssetType
@@ -76,6 +76,7 @@ class ImageBrowser(QDialog):
         self.assets.setObjectName("imageAssetList")
         self.assets.setHeaderLabels(["ID", "Format / tiles", "Pixels", "Frames"])
         self.assets.setRootIsDecorated(False)
+        self.assets.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
         self.assets.setIconSize(QSize(40, 40))
         self.assets.setColumnWidth(0, 100); self.assets.setColumnWidth(1, 105); self.assets.setColumnWidth(2, 85)
         self.assets.setColumnWidth(3, 55)
@@ -83,6 +84,10 @@ class ImageBrowser(QDialog):
         self.assets.verticalScrollBar().valueChanged.connect(lambda *_: QTimer.singleShot(0, self._thumbnails))
         left_layout.addWidget(self.assets, 1)
         self.count = QLabel("", left); left_layout.addWidget(self.count)
+        self.batch = QPushButton("Batch export / import…", left)
+        self.batch.setEnabled(session is not None)
+        self.batch.clicked.connect(self._batch_tools)
+        left_layout.addWidget(self.batch)
         right = QWidget(split); right_layout = QVBoxLayout(right)
         self.title = QLabel("", right); self.title.setWordWrap(True); right_layout.addWidget(self.title)
         frame_row = QHBoxLayout()
@@ -302,6 +307,20 @@ class ImageBrowser(QDialog):
         self._draw_image()
         self._thumbnail_keys.clear()
         self._thumbnails()
+
+    def _batch_tools(self) -> None:
+        if self.session is None:
+            return
+        from src.ui.image_batch import BatchImageDialog
+        section = AssetType(self.kind.currentData())
+        selected = tuple((section, int(item.data(0, ROLE))) for item in self.assets.selectedItems())
+        visible = tuple((section, int(self.assets.topLevelItem(i).data(0, ROLE)))
+                        for i in range(self.assets.topLevelItemCount()) if not self.assets.topLevelItem(i).isHidden())
+        dialog = BatchImageDialog(self.session, selected, visible, self, category=section)
+        dialog.assets_changed.connect(self.assets_changed)
+        dialog.exec()
+        dialog.deleteLater()
+        self.refresh()
 
     def export_to(self, path: Path) -> Path:
         if self.pixels is None:

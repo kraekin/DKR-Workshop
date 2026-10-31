@@ -99,6 +99,7 @@ class MinimapPanel(QWidget):
     edit_requested = Signal(object)
     revert_requested = Signal()
     image_requested = Signal(int)
+    generate_requested = Signal()
 
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
@@ -177,6 +178,10 @@ class MinimapPanel(QWidget):
         self.artwork.setEnabled(False)
         self.artwork.clicked.connect(lambda: self.image_requested.emit(int(self.controls["sprite"].currentData())))
         layout.addWidget(self.artwork)
+        self.generate = QPushButton("Generate minimap from track…", self)
+        self.generate.clicked.connect(self.generate_requested)
+        self.generate.setEnabled(False)
+        layout.addWidget(self.generate)
         self.message = QLabel("", self)
         self.message.setWordWrap(True)
         layout.addWidget(self.message)
@@ -193,6 +198,7 @@ class MinimapPanel(QWidget):
         self.summary.setText(f"Geometry {model.model_id} · Shared levels: {', '.join(levels)}" if model else "Select a level to inspect its minimap.")
         self.revert.setEnabled(enabled and changed)
         self.artwork.setEnabled(model is not None)
+        self.generate.setEnabled(enabled and model is not None)
         self.tint.setEnabled(enabled and model is not None)
         for control in self.controls.values():
             control.setEnabled(enabled and model is not None)

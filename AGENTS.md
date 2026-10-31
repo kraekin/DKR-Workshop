@@ -8,6 +8,10 @@ otherwise publish repository changes without explicit later authorization.
 On 2026-10-30 the user explicitly authorized pushing the completed v0.27.1
 updates and setting up/validating GitHub-hosted Nuitka builds. This authorization
 covers the related workflow, documentation and fixes needed for that setup.
+The latest authorized feature scope is custom-course finishing: generated
+minimaps, batch image exchange, improved alternate/lane authoring and direct
+BPS export, with xdelta when practical. Implement this as v0.28.0, verify the
+existing source protections and keep this new work local until a push is requested.
 Preserve local ROMs, research/build directories, personal test assets and running
 editors. Keep proprietary assets excluded from commits.
 

@@ -10,6 +10,8 @@ artifacts/
 *.v64
 *.n64
 *.dkrproj
+*.bps
+*.xdelta
 research/
 # Personal Blender/test assets may contain extracted game artwork.
 *.obj
