@@ -1,33 +1,29 @@
-# Custom-course finishing v0.28.0 — complete (2026-10-30)
+# Unified Course Builder v0.28.0 — complete (2026-10-31)
 
-Implemented staged track-to-existing-sprite minimaps with face/slope selection,
-quantized preview, both Adventure marker fits and one artwork/alignment Apply;
-batch PNG frames/animation sheets with ID/orientation manifest, changed filtering,
-conversion/shared-use review and one import undo; visual paired-alternate routes,
-road placement/drag draft history, bounded lane generation/road-height fitting
-and continuity diagnostics. Direct File-menu BPS and xdelta patch export uses
-validated in-memory edited ROM bytes, verifies reconstruction and writes atomically.
-Both patch formats require the canonical original USA Rev1 big-endian .z64 base.
+Merged main checkpoints/alternate branches, generated+individual AI lanes and
+start grid into one three-tab Course Builder. Shared preview, draft Undo/Redo,
+readiness/budget review and one composed Apply/project undo. The global set
+selector makes scope explicit; copy-to-vehicle-sets includes branches and requested
+lane edits. Main/alternate pairing survives reorder/CP0 changes and newly drawn
+unsaved points; deleting a main removes its paired draft data, with Undo restore.
 
-Reuses local LevelModel minimap fields0x20..0x3B, TextureHeader0x20, sprite tile
-positions and Checkpoint0x1C (level_object_entries.h; game_ui.c:3295/3771;
-sprite_init_frame; objects.c:5530..5800). Unknown bytes, aliases, stable identities,
-existing image layouts/palettes/frame counts, project versions and stock ROM
-identity/length protections remain intact. No native patch tool is bundled.
+Removed the separate Route Finishing window, menu action and inspector button.
+Existing inspector quick checkpoint/lane/AI-link edits remain. Cleanup is under
+advanced controls. Preview switches centreline/individual/all lanes; manual lane
+values override generation and share draft history. Candidate map views compose
+all changes without intermediate session edits. Draft point IDs are editor-only;
+no ROM structs, project schema or binary writer permissions changed. Minimap,
+batch-image and BPS/xdelta features remain intact. No remote publishing requested.
 
-Verified: full1,888 tests pass in625.89s with zero failures/errors/skips; final43
-focused tests pass in29.78s after final refinements.144 Python files parse;
-version0.28.0 metadata and diff checks pass. Native RTX4060 GL3.3 actual slots,
-menu actions, Apply/Undo/Redo/cancel/camera preservation and both patch formats
-pass; no-ROM input/graphics smoke passes61.3FPS/4xMSAA. All55 stock minimap queries:
-53 generate, models17/35 safely refuse no suitable faces. Independent xdelta3
-reconstructs complete edited ROM in memory; official Floating IPS v198 verifies
-synthetic BPS insertion/deletion/relocation. Original ROM SHA-1 unchanged:
-6d96743d46f8c0cd0edb0ec5600b003c89b93755. User files/editor sessions preserved.
+Verified:1,904 full-suite tests pass in586.47s (zero failures/errors/skips), plus
+final9 unified/selection checks in8.26s. Native RTX4060 GL3.3 actual-menu checks
+pass for all tabs, branch road placement, generated/manual lane values, grid and
+one project Apply/Undo/Redo; original parent camera and ROM unchanged.144 Python
+files parse, metadata0.28.0 and diff checks pass. Screenshots/JUnit: ignored
+artifacts/unified-course-*. Existing user files/editor processes preserved.
 
-Guide: docs/CUSTOM_COURSE_FINISHING.md; release notes: docs/RELEASE_NOTES_0.28.0.md.
-JUnit/screenshots/interoperability records are under ignored artifacts/.
-Owned pytest fixtures cleaned; no gameplay/review ROM or emulator run. Next:
-user reviews v0.28.0 using the root DKR Workshop.cmd source launcher and performs
-in-game confirmation. Save project separately from patches. Local Git checkpoint
-only: no remote push, version tag, release or standalone rebuild was requested.
+Guides: docs/COURSE_BUILDING.md, docs/CUSTOM_COURSE_FINISHING.md. Release notes:
+docs/RELEASE_NOTES_0.28.0.md. Owned test fixtures cleaned after verification;
+no gameplay/review ROM or emulator run. Next: user reviews using root DKR
+Workshop.cmd. Keep this unreleased v0.28.0 work local; no GitHub push, release tag
+or standalone rebuild was performed. Previous feature checkpoint9768968 retained.

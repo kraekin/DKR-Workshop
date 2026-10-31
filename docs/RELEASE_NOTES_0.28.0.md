@@ -7,10 +7,12 @@
 - **Batch image tools:** export selected, filtered or changed images as PNG
   frames or animation sheets. A manifest retains asset IDs, frame indexes and
   orientation. Review the N64 conversion and shared uses before one batch Apply.
-- **Route finishing:** create alternate branches paired to main checkpoints,
+- **Unified Course Builder:** checkpoints/branches, AI lanes and start grid now
+  share three tabs, one preview, draft history and one Apply. Create paired branches,
   place them on the road or drag their handles, preview entry/rejoin and all
   four AI lanes, generate even lane spacing and optionally fit lane heights to
-  nearby road. Readiness notes highlight pairing, lane order and continuity.
+  nearby road, or adjust individual lane values. Readiness notes highlight pairing,
+  lane order and continuity. The separate Route Finishing window is removed.
 - **Direct patch export:** export BPS or xdelta patches from the current project
   without first saving an edited ROM or installing a separate patch tool.
   Both formats reconstruct the same validated edited ROM as normal ROM export.

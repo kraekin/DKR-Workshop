@@ -33,6 +33,7 @@ ObjectKey = tuple[int,int]
 class CoursePoint:
     position: Position
     key: ObjectKey | None = None
+    draft_id: int | None = None  # Stable pairing for unsaved, newly drawn points.
 
 
 @dataclass(frozen=True)

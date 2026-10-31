@@ -12,6 +12,10 @@ The latest authorized feature scope is custom-course finishing: generated
 minimaps, batch image exchange, improved alternate/lane authoring and direct
 BPS export, with xdelta when practical. Implement this as v0.28.0, verify the
 existing source protections and keep this new work local until a push is requested.
+On 2026-10-31 the user authorized merging Course Builder and Route Finishing:
+one three-tab window for checkpoints/branches, AI lanes and start grid, shared
+preview/draft history/Apply, while keeping inspector quick edits. Remove the
+separate finishing window/entry points. This is a local v0.28.0 refinement.
 Preserve local ROMs, research/build directories, personal test assets and running
 editors. Keep proprietary assets excluded from commits.
 

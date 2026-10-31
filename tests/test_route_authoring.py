@@ -80,20 +80,20 @@ def test_invalid_branch_or_lane_plan_is_atomic(rom: RomImage, kind: str) -> None
 
 def test_route_dialog_branch_history_and_cancel(rom: RomImage) -> None:
     from PySide6.QtWidgets import QApplication
-    from src.ui.route_authoring import RouteAuthoringDialog
+    from src.ui.course_builder import CourseBuilder
     app = QApplication.instance() or QApplication([])
     s = EditSession(rom)
-    dialog = RouteAuthoringDialog(s, 5)
-    dialog.refresh_preview()
-    assert dialog.plan is not None, dialog.report.toPlainText()
-    count = dialog.rows.topLevelItemCount()
-    dialog.add_branch()
-    assert dialog.rows.topLevelItemCount() == count + 1
-    dialog._travel(-1)
-    assert dialog.rows.topLevelItemCount() == count
-    dialog._travel(1)
-    dialog.refresh_preview()
-    assert dialog.plan is not None and dialog.apply.isEnabled(), dialog.report.toPlainText()
+    dialog = CourseBuilder(s, 5)
+    dialog._refresh_live()
+    assert dialog._live_plan is not None, dialog.message.text()
+    count = dialog.branch_points.topLevelItemCount()
+    dialog._add_branch()
+    assert dialog.branch_points.topLevelItemCount() == count + 1
+    dialog._undo()
+    assert dialog.branch_points.topLevelItemCount() == count
+    dialog._redo()
+    dialog._refresh_live()
+    assert dialog._live_plan is not None and dialog.apply.isEnabled(), dialog.message.text()
     dialog.reject()
     assert not s.dirty
     dialog.deleteLater()
@@ -119,27 +119,29 @@ def test_retained_alternate_draft_is_exact_noop(rom: RomImage) -> None:
 @pytest.mark.parametrize("cancel", [False, True])
 def test_branch_drag_records_once_or_cancels(rom: RomImage, cancel: bool) -> None:
     from PySide6.QtWidgets import QApplication
-    from src.ui.route_authoring import RouteAuthoringDialog
+    from src.ui.course_builder import CourseBuilder
     app = QApplication.instance() or QApplication([])
     s = EditSession(rom)
-    dialog = RouteAuthoringDialog(s, 5)
-    dialog.add_branch()
-    dialog.refresh_preview()
+    dialog = CourseBuilder(s, 5)
+    dialog._add_branch()
+    dialog.snap_points.setChecked(False)
+    dialog._refresh_live()
+    dialog._flush_history()
     before, cursor = dialog._state(), dialog._cursor
-    index = next(i for i, obj in enumerate(dialog.display) if obj.value("isAltCheckpoint"))
-    start = dialog.display[index].position
+    index = next(i for i, role in enumerate(dialog._roles) if role[0] == 'branch')
+    start = dialog.viewport.objects[index].position
     dialog._begin_drag(index)
-    dialog._drag((start[0] + 40, start[1], start[2]))
-    dialog._drag((start[0] + 80, start[1], start[2]))
-    dialog._end_drag(cancel)
+    dialog._preview_drag((start[0] + 40, start[1], start[2]))
+    dialog._preview_drag((start[0] + 80, start[1], start[2]))
+    dialog._finish_drag(cancel)
     if cancel:
         assert dialog._state() == before and dialog._cursor == cursor
     else:
         assert dialog._cursor == cursor + 1
-        dialog._travel(-1)
+        dialog._undo()
         assert dialog._state() == before
     dialog.reject()
-    assert not s.dirty and not dialog.timer.isActive()
+    assert not s.dirty and not dialog._refresh_timer.isActive()
     dialog.deleteLater()
     app.processEvents()
 

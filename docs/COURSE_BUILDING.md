@@ -1,10 +1,12 @@
-# Course Builder — v1.25.0
+# Course Builder — checkpoints, branches, AI lanes and starts
 
 Open **Edit → Course Builder…** with a level loaded. The existing
 **Tools → Routes → Course builder…** button opens the same independent window.
 It uses the current track geometry and artwork, including imported OBJ tracks.
 Everything stays in a draft until **Apply course**; Cancel leaves the project
-unchanged. Cleanup, routes and starts become **one project undo step** together.
+unchanged. Cleanup, checkpoints/branches, lanes and starts become **one project
+undo step** together. The three tabs share the same selected checkpoint set,
+preview, draft history and Apply button.
 
 ## Start a new course on imported geometry
 
@@ -13,7 +15,8 @@ unchanged. Cleanup, routes and starts become **one project undo step** together.
    alternates, starts and other helpers. Geometry, collision, textures and level
    settings remain in place. The preview clears immediately and switches to Top.
    Use **Replace race setup — keep other objects** to remove checkpoints, starts
-   and AI nodes while retaining the other placed objects. **Cleanup** also offers
+   and AI nodes while retaining the other placed objects. **Object cleanup /
+   shared maps** on Checkpoints & branches also offers
    category checkboxes, counts and a shared-map affected-level notice.
 2. Use **Place checkpoints**, then click along the road in driving order. The
    first point is orange **CP0**; the loop closes automatically. Draw at least
@@ -57,7 +60,8 @@ nearby road by default; the Y handle allows deliberate height changes. A failed
 snap retains the prior point and reports why. Esc or focus loss cancels a drag.
 
 **Undo draft / Redo draft** (Ctrl+Z, Ctrl+Y/Ctrl+Shift+Z) undo draft placement,
-cleanup, point order/coordinates, grid settings and completed drag gestures.
+cleanup, point order/coordinates, alternate branches, generated/individual lanes,
+grid settings and completed drag gestures.
 They do not touch project history. After Apply, use the main editor's Undo to
 restore the whole prior scene. Closing the builder discards the draft.
 
@@ -71,14 +75,16 @@ Opening an unchanged course does not renumber it. Category-only cleanup and
 grid-only edits retain untouched checkpoint records exactly. Requested route
 edits renumber its main rows from 0. An existing route's headings, lane values,
 HUD cues and unknown bytes stay stored unless explicitly reset. Advanced
-checkpoint controls expose the new-entry map, lane scale/width, retained lane
-reset, alternate removal and the original downward-only batch-drop operation.
+checkpoint controls expose the new-entry map/scale, alternate removal and the
+original downward-only batch-drop operation. Lane generation, height fitting,
+behavior reset and individual lane overrides are on the **AI lanes** tab.
 The map selector affects new entries; retained objects stay in their maps.
 
 Retained alternates follow the new index of their paired retained main. Removing
-a main with an alternate is refused unless alternate removal is selected.
+a main point removes its paired branch from the same draft; Undo restores both.
 Copying a common route explicitly replaces the other mapped sets, including
-their alternates, with neutral-lane copies. The runtime bound remains **60
+their alternates, with new-entry lane defaults, then applies the selected branch
+and lane edits to those copied routes. The runtime bound remains **60
 entries per selected set including alternates**, separate from map/RAM/ROM bounds.
 Other object references and special behavior are not repaired automatically.
 
@@ -139,3 +145,16 @@ transaction instead of temporarily deleting referenced custom sets.
 
 Automated/native results are recorded in compact STATUS.md. Autosave, recovery
 and backups remain deferred; further milestones require user authorization.
+
+## Unified branch/lane workflow
+
+Course Builder is the single authoring window for **Checkpoints & branches**,
+**AI lanes** and **Start grid**. Their candidate maps are composed without
+changing the edit session; one Apply stores the complete result as one undo step.
+Alternate pairing follows stable main-point identities through reordering and
+new unsaved points. Individual lane adjustments override optional generation
+and participate in the same draft history. The common preview switches between
+centreline, individual lanes and all four lanes. The existing Routes inspector
+keeps quick checkpoint/AI-link edits; its Course Builder button opens this same
+window. See [Custom-course finishing](CUSTOM_COURSE_FINISHING.md) for the detailed
+branch/lane controls. No project format or ROM writer changed in this merge.

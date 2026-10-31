@@ -116,7 +116,6 @@ class MainWindow(QMainWindow):
         self.object_inspector.routes.preview_changed.connect(self._route_preview)
         self.object_inspector.routes.pick_requested.connect(self._pick_connection)
         self.object_inspector.routes.build_requested.connect(self._show_course_builder)
-        self.object_inspector.routes.finish_requested.connect(self._show_route_authoring)
         self.object_inspector.tools.currentChanged.connect(self._route_preview)
         self.object_inspector.tabs.currentChanged.connect(self._route_preview)
         self.object_inspector.materials.edit_requested.connect(self._edit_materials)
@@ -287,8 +286,6 @@ class MainWindow(QMainWindow):
         self.course_builder_action = QAction('Course Builder…', self)
         self.course_builder_action.setObjectName('openCourseBuilderMenu')
         self.course_builder_action.triggered.connect(self._show_course_builder)
-        self.route_authoring_action = QAction('Route finishing / alternates…', self)
-        self.route_authoring_action.triggered.connect(self._show_route_authoring)
         file_menu.addSeparator()
         self.open_project_action = QAction("Open &Project…", self)
         self.open_project_action.setShortcut(QKeySequence("Ctrl+Shift+O"))
@@ -335,7 +332,7 @@ class MainWindow(QMainWindow):
         self.delete_objects_action.triggered.connect(self._delete_objects)
         edit_menu.addActions([self.add_object_action, self.duplicate_objects_action, self.delete_objects_action])
         edit_menu.addSeparator()
-        edit_menu.addActions([self.course_builder_action,self.route_authoring_action,self.course_names_action,self.image_browser_action,self.global_objects_action,self.model_editor_action])
+        edit_menu.addActions([self.course_builder_action,self.course_names_action,self.image_browser_action,self.global_objects_action,self.model_editor_action])
         view_menu = self.menuBar().addMenu("&View")
         view_menu.addActions([self.level_dock.toggleViewAction(), self.inspector_dock.toggleViewAction()])
         view_menu.addAction(self.camera_toolbar.toggleViewAction())
@@ -1031,16 +1028,6 @@ class MainWindow(QMainWindow):
         except (ValueError, OSError) as error:
             self.object_inspector.minimap.message.setText(f"Minimap edit rejected: {error}")
 
-    def _show_route_authoring(self) -> None:
-        self._commit_editor()
-        if self.edit_session is None or self.selected_level is None:
-            return
-        from src.ui.route_authoring import RouteAuthoringDialog
-        dialog = RouteAuthoringDialog(self.edit_session, self.selected_level.index, self)
-        if dialog.exec():
-            self._refresh_edits(None)
-        dialog.deleteLater()
-
     def _generate_minimap(self) -> None:
         self._commit_editor()
         if self.edit_session is None or self.current_model is None:
@@ -1476,7 +1463,6 @@ class MainWindow(QMainWindow):
         self.global_objects_action.setEnabled(session is not None)
         self.model_editor_action.setEnabled(session is not None)
         self.course_builder_action.setEnabled(session is not None and self.selected_level is not None and self.current_model is not None)
-        self.route_authoring_action.setEnabled(session is not None and self.selected_level is not None and self.current_model is not None)
         self.export_report_action.setEnabled(session is not None)
         if session is None:
             self._budget_label.clear()

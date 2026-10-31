@@ -46,30 +46,42 @@ Existing palettes, animation lengths and sprite layouts remain protected.
 
 ## Alternate routes and lanes
 
-Open **Edit → Route finishing / alternates…** or the matching Routes-panel button.
-Start with at least four main checkpoints, authored in Course Builder. Choose a
-checkpoint set and an inclusive main-index range, then **Create paired branch**.
-Each alternate replaces the main checkpoint at the same index. For a branch
-crossing CP0, create the end and start ranges separately.
+Open **Edit → Course Builder…** or the Routes inspector's **Course builder…**
+button. One window has **Checkpoints & branches**, **AI lanes** and **Start grid**
+tabs sharing the same preview, draft Undo/Redo and **Apply course**. The set
+selector above the tabs defines the checkpoint set being edited; grid changes
+join that transaction. The inspector remains available for quick existing-object
+lane/connection edits. There is no separate Route Finishing window.
 
-Select an alternate row, enable **Click road to place selected alternate**, and
-click the intended road. With that option off, select/drag alternate handles or
-edit XYZ in the table. Main checkpoints stay protected in this window. **Undo
-branch edit / Redo** covers branch additions, removals, placement and movement.
-Set switching retains branch rows; **Apply current checkpoint set** applies the
-selected set. Unapplied drafts are discarded when closing the window.
+On **Checkpoints & branches**, draw/edit the main sequence. Under **Alternate
+branches**, choose an inclusive checkpoint range and **Create paired branch**.
+Select an alternate, then **Place alternate on road**, edit XYZ or drag its
+handles. Pairing follows the main point through reordering, reversal and CP0
+changes, including newly drawn unsaved points. Removing a main point also removes
+its paired branch and manual lane adjustments from the draft; Undo restores them.
+For a branch crossing CP0, add the end and start ranges separately.
 
-Optionally align alternate headings and generate four evenly spaced AI lanes.
-Width is in game units; conversion must fit each checkpoint's existing signed8
-offset range. Height fitting chooses nearby road layers and refuses ambiguous
-or out-of-range results. Existing lane heights/behavior selectors remain unless
-their respective options are enabled. Readiness notes can focus their checkpoint
-when double-clicked. These are authoring diagnostics, not racer AI simulation.
+On **AI lanes**, generate evenly spaced lanes and optionally fit heights to
+nearby road or reset behavior selectors. Choose a checkpoint/alternate in the
+individual-adjustment selector or select its marker, then edit the four lanes'
+lateral, height or behavior values. Individual adjustments override generation;
+**Use generated / stored values for this checkpoint** clears those overrides.
+All of these operations remain drafts. The AI tab shows all four lanes; the
+preview selector also offers individual lanes or the centreline.
 
-Apply performs the existing structural/shared-map/reference/ROM budget checks,
-then stores one project Undo/Redo transaction. The 60-checkpoint limit includes
-main and alternate entries. Unknown bytes, aliases, identity provenance and level
-vehicle-to-checkpoint-set mappings retain their existing protections.
+On **Start grid**, place/aim/fit the eight racers as before. Readiness and ROM
+budget review cover the combined route, branches, lanes, grid and cleanup. Apply
+performs the existing structural/shared-map/reference/export checks and commits
+one project undo step. Closing the builder discards all unapplied changes.
+Switching sets preserves their draft rows; Apply targets the selected set and
+requested grid/cleanup. **Copy this route to every level vehicle set** replaces
+the other mapped routes and copies branches and requested lane edits too.
+
+Existing image/patch workflows remain separate from this authoring draft. Game
+bounds still apply: at most60 main+alternate checkpoints per set, signed8 lane
+offsets and fixed header mappings. Height fitting refuses ambiguous/missing road
+layers or unrepresentable offsets. Unknown bytes and stable entry provenance
+remain protected. Diagnostics do not simulate racer AI or gameplay.
 
 ## Export a BPS or xdelta patch
 

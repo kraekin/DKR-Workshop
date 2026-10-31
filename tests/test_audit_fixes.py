@@ -258,6 +258,7 @@ def test_course_builder_only_exposes_handles_on_movable_roles():
     from src.ui.course_builder import CourseBuilder
     seen = []
     panel = SimpleNamespace(_roles=[('other', 0), ('grid', 0)],
+                            _update_lane_controls=lambda: None,
                             viewport=SimpleNamespace(set_mouse_move_enabled=seen.append))
     CourseBuilder._object_selected(panel, 0)
     CourseBuilder._object_selected(panel, 1)

@@ -116,8 +116,7 @@ The right inspector has **Level**, **Objects**, **Geometry**, **Settings** and
 | Geometry → Materials | Visual batch material assignments, shared course materials, UVs, colors and rendering |
 | Tools → Minimap | Generate map artwork, align markers, edit tint/settings and exchange PNGs |
 | Tools → Cinematics | Actor/camera path nodes, timing, events and preview |
-| Edit → Course Builder… | Clear placed objects, draw checkpoints and create a start grid |
-| Edit → Route finishing / alternates… | Place paired branches, generate lanes and inspect continuity |
+| Edit → Course Builder… | Checkpoints/branches, AI lanes and start grid in one draft |
 | Edit → Course Names… | Existing English, German and French course names |
 | Edit → Texture & Sprite Browser / PNG… | Individual/batch PNG exchange, animation sheets, sprite anchors and timing |
 | Edit → Global Object Properties… | Shared object definitions and compatible artwork references |

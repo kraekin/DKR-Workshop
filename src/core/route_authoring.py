@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, replace
 import math
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 import numpy as np
 
 from src.core.course import (CoursePlan, CoursePoint, level_objects, plan_objects,
@@ -58,7 +58,7 @@ def continuity_issues(objects: tuple[LevelObject, ...], group: int) -> tuple[Rou
 
 def build_route_plan(session: EditSession, level: int, group: int, map_id: int,
                      alternates: tuple[AlternatePoint, ...], lanes: LaneOptions | None = None,
-                     *, align_alternates: bool = True) -> CoursePlan:
+                     *, align_alternates: bool = True, validate: bool = True) -> CoursePlan:
     session._require_idle()
     header = session.level_header(level)
     maps = tuple(dict.fromkeys(m for m in (header.object_map_id, header.secondary_object_map_id) if m >= 0))
@@ -137,10 +137,62 @@ def build_route_plan(session: EditSession, level: int, group: int, map_id: int,
                 updated[obj.index] = patch_entry(obj, parameters=parameters)
             entries[m] = [(i, updated.get(i, raw)) for i, raw in entries[m]]
     after = tuple(MapState(m, rebuild(session, m, tuple(raw for _, raw in entries[m])), tuple(identities[m])) for m in maps)
-    validate_capacity(session, after)
+    if validate:
+        validate_capacity(session, after)
     notes = (f"Set {group}: {len(old)} → {len(alternates)} paired alternate checkpoints.",)
     if lanes is not None:
         notes += (f"Generate four lanes at half-width {lanes.half_width:g}; {'follow nearby road' if lanes.follow_road else 'retain existing heights'}; {'reset' if lanes.reset_behaviors else 'retain'} behavior selectors.",)
     plan = CoursePlan(level, session._signature(), before, after, tuple(seeds.items()), tuple(counters.items()), tuple(selected), (), notes)
     result = plan_objects(session, plan)
     return replace(plan, issues=course_diagnostics(result, header.checkpoint_sets, terrain, active_set=group) + continuity_issues(result, group))
+
+
+class CourseDraftView:
+    """Read-only candidate maps, for composing plans without editing the session."""
+
+    def __init__(self, session: EditSession, plan: CoursePlan) -> None:
+        self.session, self.plan = session, plan
+        self._next_identity = dict(plan.counters)
+
+    def __getattr__(self, name: str) -> Any:
+        return getattr(self.session, name)
+
+    def _map_state(self, map_id: int) -> MapState:
+        return next((state for state in self.plan.after if state.map_id == map_id), self.session._map_state(map_id))
+
+    def current_map(self, map_id: int) -> ObjectMap:
+        state = self._map_state(map_id)
+        return identify(ObjectMap.from_bytes(state.raw, self.session.database, map_id=map_id), state.identities)
+
+
+def finish_course_plan(session: EditSession, base: CoursePlan, group: int, map_id: int,
+                       alternates: tuple[AlternatePoint, ...], lanes: LaneOptions | None = None,
+                       *, align_alternates: bool = False, validate: bool = True) -> CoursePlan:
+    """Add branch/lane edits to the same candidate that holds checkpoints and grid."""
+    draft = CourseDraftView(session, base)
+    finishing = build_route_plan(draft, base.level, group, map_id, alternates, lanes,
+                                  align_alternates=align_alternates, validate=validate)
+    return replace(finishing, before=base.before, seeds=base.seeds, signature=base.signature,
+                   selection=tuple(dict.fromkeys((*base.selection, *finishing.selection))),
+                   changes=base.changes + finishing.changes)
+
+
+def edit_course_lanes(session: EditSession, base: CoursePlan,
+                      updates: dict[tuple[int, int], dict[str, int]]) -> CoursePlan:
+    """Apply explicit per-checkpoint lane overrides to an existing candidate."""
+    allowed = set(LATERAL + HEIGHT + BEHAVIOR)
+    draft = CourseDraftView(session, base)
+    maps = {state.map_id for state in base.after}
+    for key, fields in updates.items():
+        if key[0] not in maps:
+            raise ValueError('Lane overrides must stay inside the drafted course maps')
+        obj = next((o for o in draft.current_map(key[0]).objects if o.key == key), None)
+        if obj is None or obj.definition.behavior_id != 13 or not set(fields) <= allowed:
+            raise ValueError('Lane overrides require an existing draft checkpoint and lane fields')
+    after = []
+    for state in base.after:
+        objects = draft.current_map(state.map_id).objects
+        raw = rebuild(session, state.map_id, tuple(patch_entry(o, parameters=updates[o.key]) if o.key in updates else o.raw_data for o in objects))
+        after.append(replace(state, raw=raw))
+    return replace(base, after=tuple(after), selection=tuple(dict.fromkeys((*base.selection, *updates))),
+                   changes=base.changes + (f'Individual lane adjustments: {len(updates)} checkpoint(s).',))
