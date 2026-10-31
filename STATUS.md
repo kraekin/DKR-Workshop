@@ -1,27 +1,26 @@
-# GitHub publishing and hosted Windows builds — in progress (2026-10-30)
+# GitHub publishing and hosted Windows builds — configured (2026-10-30)
 
-User explicitly authorized pushing the completed v0.27.1 changes to
-kraekin/DKR-Workshop and setting up GitHub-hosted Nuitka builds. Preserve local
-ROMs, research, personal assets and existing editor processes; upload source
-and build configuration only. No binary formats or application behavior change.
+User authorized publishing the completed v0.27.1 updates and GitHub-hosted
+Nuitka builds. All application changes and CI configuration are on origin/main.
+Build source commit: 8d6c571. No ROMs, extracted assets, editor projects or build
+binaries were committed. Existing editors and local research remain untouched.
 
-Confirmed origin/main history retained, local main has four completed commits,
-GitHub authentication permits pushes/workflows, and Actions is enabled. Existing
-v0.26.0 release used Nuitka onefile, PySide6, embedded icon and dependency notices.
-The v0.27.1 application already passed all 1,853 tests and native placement checks.
+Windows CI uses pinned CPython3.12/MSVC/Nuitka/PySide6 dependencies, embeds the
+existing icon and dependency notices, and uploads explicit release files only.
+Manual branch builds upload Actions artifacts; matching version tags build a
+Windows x64 EXE/checksum and attach them to a draft release. Publishing a release
+without an EXE also triggers a build. Ordinary main pushes do not compile.
+Guide: docs/WINDOWS_BUILDS.md. Public README retains its four screenshot URLs.
 
-Implemented pinned CPython3.12/MSVC/Nuitka Windows onefile CI: manual builds,
-matching version tags, draft release attachments and published-release builds.
-Explicit artifact paths contain only the EXE, notices/readme and checksum.
-Public README retains all four existing screenshot URLs.
+Verification: actionlint passes; all12 ROM-free checks and source --help pass
+locally, in a fresh source copy, and on the corrected hosted run. First run
+41158499075 failed because artifacts/pytest lacked its parent directory; fixed
+by creating artifacts before tests. Prior application gate: all1,853 tests pass.
+No binary formats or application behavior changed during this milestone.
 
-Preflight: actionlint1.7.12 passes with no findings; all12 ROM-free camera/release
-checks pass; source --help starts; application/build Python syntax passes; diff
-whitespace check passes. Tracked-file audit finds no ROMs, exports or binaries.
-
-All five local commits pushed to origin/main through ed3780f. GitHub registered
-the workflow; first manual run: https://github.com/kraekin/DKR-Workshop/actions/runs/41158499075
-The first hosted preflight found a fresh-checkout issue: pytest's configured
-artifacts/pytest base needs its parent directory created before tests. Workflow
-now creates artifacts explicitly. Next: verify a fresh source copy, push the fix,
-rerun the hosted build and verify its downloaded EXE. No ROM/emulator CI or tag.
+Current build: https://github.com/kraekin/DKR-Workshop/actions/runs/41158679071
+Last observed: preflight passed, Nuitka compilation in progress. User explicitly
+requested no further waiting/testing and will download/test or report a failure.
+Next: user reviews the completed build. Do not claim compilation, packaged EXE
+startup or hosted graphics verification passed; those were not yet observed.
+No new version tag or public release was created during setup.
