@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "DKR-Suite"
+version = "0.26.0"
+description = "DKR Workshop: Diddy Kong Racing N64 level, track and asset editor"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "PySide6>=6.6,<7",
+    "PyOpenGL>=3.1.7,<4",
+    "numpy>=1.26,<3",
+    "Pillow>=10,<13",
+    "zstandard>=0.23,<1",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8,<10"]
+
+[project.scripts]
+DKR-Suite = "src.main:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["src", "src.*"]
+
+[tool.setuptools.package-data]
+"src.ui" = ["resources/*.ico"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+# Generated test files stay in the writable workspace on this Windows host.
+addopts = "--basetemp=artifacts/pytest"

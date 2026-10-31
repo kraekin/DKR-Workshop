@@ -1,214 +1,204 @@
 # DKR Workshop
 
-**Version 0.26.0 · Public beta · Python script release**
+**v0.26.0 · Public beta**
 
-DKR Workshop is a desktop level, track and asset editor for **Diddy Kong Racing
-on Nintendo 64**. Explore the original courses, rearrange objects, create custom
-tracks in Blender, replace textures, and export your changes to a separate ROM.
+DKR Workshop is a desktop editor for Diddy Kong Racing on Nintendo 64. Open an
+original **USA Rev 1 / USA 1.1 (`us.v80`) ROM**, edit courses and shared assets,
+save a project, and export a separate edited ROM. Game artwork is loaded from
+your ROM; it is not bundled with the application.
 
-This package runs directly from Python. It includes the application source,
-launcher, dependency list and application icon. You supply your own legally obtained ROM.
+## Getting started
 
-## Requirements
-
-- **Windows, with 64-bit Python 3.11 or newer.** The included launcher is for Windows.
-- **OpenGL 3.3-capable graphics hardware and a working desktop graphics driver.**
-- An original **Diddy Kong Racing USA Rev 1 / USA 1.1** ROM.
-- An emulator or compatible hardware to play your exported ROMs.
-
-The editor accepts `.z64`, `.v64` and `.n64` byte orders and converts them in
-memory.
-
-For reference, the supported original ROM's SHA-1 after byte-order normalization is:
-
-```text
-6d96743d46f8c0cd0edb0ec5600b003c89b93755
-```
-
-## Screenshots
-
-| **Main Windowr** | **Editing a Trackr** |
-| :---: | :---: |
-| <img width="400" alt="Main Window" src="https://github.com/user-attachments/assets/e324a320-375d-4339-8795-064149c7830c" /> | <img width="400" alt="Ancient Lake" src="https://github.com/user-attachments/assets/e3fbb68f-8071-4cd8-afb7-9e7b6fc66994" /> |
-| Main window showing the starting hub | Editing Ancient Lake |
-| **Materials and Textures** | **Object Models and Animation** |
-| <img width="400" alt="Materials and Textures" src="https://github.com/user-attachments/assets/41f6cd9c-ea47-436e-805b-b4e2a4c6002c" /> | <img width="400" alt="Objects and Animations" src="https://github.com/user-attachments/assets/adf3ba94-c2b9-4696-aac7-8c5613ae8b5f" /> |
-| Change track materials and driving surfaces, or replace textures with your own artwork. | Preview animations and export models for editing in Blender. |
-
-## Installation and launch
-
-1. Extract the whole release folder somewhere you can write files. Keep
-   `src`, `requirements.txt` and `DKR Workshop.cmd` together.
-2. Open PowerShell in that folder and run:
-
-   ```powershell
-   python -m venv .venv
-   .\.venv\Scripts\python.exe -m pip install -r requirements.txt
-   ```
-
-3. Double-click **DKR Workshop.cmd** to launch the editor.
-
-You only need to install the dependencies once for that environment. The launcher
-uses the `.venv` folder automatically, so activating it is unnecessary.
-
-You can also launch it from PowerShell:
+Python 3.11+ and an OpenGL 3.3 Core desktop graphics driver are required.
+From the project directory in PowerShell:
 
 ```powershell
-.\.venv\Scripts\python.exe -B -m src.main
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -e ".[dev]"
+python -m src.main
 ```
 
-If you downloaded the separate **one-file executable edition**, run
-`DKR Workshop.exe` instead; that edition includes its Python runtime.
+If activation is unavailable, use `.\.venv\Scripts\python.exe` instead of
+`python`. Open your ROM with **File → Open ROM…**, then select a level on the
+left. `.z64`, `.v64` and `.n64` byte orders are accepted and normalized in memory.
+Editing requires the original USA Rev 1 identity; other supported sources are
+view-only. Opening a modified ROM does not restore a project's editing history.
 
-## Your first edit
+## Saving and exporting
 
-1. Choose **File → Open ROM…** and select your original USA Rev 1 ROM.
-2. Select a course or hub from the level list on the left.
-3. Click an object in the viewport or its row in **Objects**. Double-click a row
-   to focus the camera on it.
-4. Move it using the colored handles, or edit its coordinates in the inspector.
-   Double-click a property value to edit that field.
-5. Choose **File → Save Project** to save your editable `.dkrproj`.
-6. Choose **File → Save As Edited ROM…** to export a separate `.z64` for playing.
+- **Save Project** (`Ctrl+S`) writes a `.dkrproj` containing edits and the original
+  ROM identity. Keep the project and original ROM to resume editing.
+- **Open Project** (`Ctrl+Shift+O`) restores those edits. If the original ROM has
+  moved, open it first, then reopen the project.
+- **Save As Edited ROM…** (`Ctrl+Alt+S`) writes a separate big-endian `.z64`,
+  rebuilding changed assets and checksums. It refuses the original ROM's path.
+  Exporting the ROM does not save the editable project.
+- **ROM Budget and Project Changes…** shows the exact storage budget, changed
+  assets and known shared uses. ROM padding is storage space, separate from
+  the game's runtime RAM and object pools.
 
-Use **Undo** (`Ctrl+Z`) and **Redo** (`Ctrl+Y` or `Ctrl+Shift+Z`) to reverse edits.
+Undo/Redo (`Ctrl+Z`, `Ctrl+Y` or `Ctrl+Shift+Z`) spans objects, assets and levels.
+The title's asterisk marks unsaved project changes. Shared assets can affect
+several courses; review their listed uses before applying changes.
 
-## Projects and ROM exports
-
-| File or action | Purpose |
-| --- | --- |
-| Original ROM | The unchanged base used to load game data and reopen projects. Keep it. |
-| `.dkrproj` project | Stores your edits and their original-ROM identity so you can resume work. |
-| Save As Edited ROM… | Builds a separate playable ROM containing the applied edits. |
-| ROM Budget and Project Changes… | Shows changed assets, known shared uses and available ROM storage. |
-
-**Save both your project and your exported ROM.** Exporting a ROM does not save
-the project. Opening an exported ROM does not recover its project history.
-
-To continue later, use **File → Open Project…**. If the original ROM has moved,
-open it first, then reopen the project. ROM export refuses to overwrite the
-loaded original ROM's path.
-
-In editors with a preview or draft, use **Apply** to commit the changes to the
-project before saving or exporting. Closing a draft without applying discards it.
-
-## Camera controls
+## Viewport and navigation
 
 | Control | Action |
 | --- | --- |
-| Right mouse button + drag | Look around |
-| Middle mouse button + drag | Pan |
-| Alt + right mouse button + drag | Orbit around the view target |
-| W / S | Move forward / backward while the camera is captured |
-| A / D | Strafe left / right while the camera is captured |
-| Q / E | Move down / up while the camera is captured |
-| Shift | Boost movement speed |
-| Mouse wheel | Zoom |
+| Right mouse + drag | Look around |
+| Middle mouse + drag | Pan in any view |
+| Alt + right mouse | Orbit around the view target |
+| W/S, A/D | Move forward/back and strafe |
+| Q/E | Move down/up |
+| Shift | Boost movement speed ×4 |
+| Wheel | Zoom |
 | F | Fit the course or isolated segment |
-| Escape | Cancel the active gesture or release camera capture |
+| Escape | Cancel a gesture or release camera capture |
 | Double-click an object row | Focus that object |
 
-Use the camera toolbar to switch between **Perspective**, **Top**, **Front** and
-**Right** views. **Help → Camera Controls** also lists the controls.
+The camera toolbar selects **Perspective**, **Top**, **Front** or **Right**.
+Its speed slider remains independent of selection and zoom. Render controls
+include textures, vertex colors, wireframe, segment bounds, backface culling,
+sprites, models, object markers and racelines. Markers and paths remain visible
+through surfaces for editing; physical artwork respects scene depth.
 
-The **Grid** arrow menu controls automatic visibility and the working plane.
-The corner **Axes** indicator shows world orientation: X is red, Y green and Z blue.
+### Working grid and axes
 
-## What you can edit
+The grid uses world-coordinate multiples near the course, rather than a plane
+centered on the world's origin. Spacing adapts to zoom and is shown in game units.
+Automatic visibility shows it in orthographic views and hides it in Perspective.
+Click **Grid** to override visibility; use its arrow menu to restore Automatic,
+follow the selection's height/depth, click a track surface to position the plane,
+or reset the working plane. Surface placement changes only the editing guide.
 
-| Tool | Where to find it | Main uses |
-| --- | --- | --- |
-| Placed objects | Objects tab | Move objects, edit parameters, add, duplicate and delete entries. |
-| Track geometry | Geometry → Mesh | Reshape existing geometry or import a replacement OBJ track. |
-| Track materials | Geometry → Materials | Change batch materials, driving surfaces, UVs and vertex colors. |
-| Level settings | Settings tab | Adjust supported level defaults, references, vehicles, laps and fog. |
-| Placement helpers | Tools → Placement | Group transforms, alignment, snapping and surface placement. |
-| Routes | Tools → Routes | Edit checkpoint AI lanes and directed AI-node connections. |
-| Minimap | Tools → Minimap | Adjust the map sprite, positioning, tint and marker alignment. |
-| Cinematics | Tools → Cinematics | Edit supported actor/camera paths, timing and events. |
-| Course Builder | Edit → Course Builder… | Clear selected object categories, create checkpoint routes and place a start grid. |
-| Course names | Edit → Course Names… | Edit the existing English, German and French course names. |
-| Textures and sprites | Edit → Texture & Sprite Browser / PNG… | Export PNGs, import replacements, adjust supported anchors and timing. |
-| Shared object properties | Edit → Global Object Properties… | Edit supported shared object definitions and artwork references. |
-| Object models and animation | Edit → Object Models & Animation… | Export/import meshes and clips, edit model data and preview changes. |
+The **Axes** button toggles the small corner XYZ orientation indicator:
+X red, Y green, Z blue. It follows camera orientation without covering the track.
 
-### Changing a track texture
+**Help → Camera Controls** lists controls. **Help → Graphics / GPU…** identifies
+the active graphics device and Python executable. On Windows, use that executable
+in system Graphics Settings to choose a dedicated GPU, then restart Workshop.
 
-Open **Geometry → Materials**, click the track surface to select its batch, then
-choose **Change this batch’s material…**. Select a material in the thumbnail
-picker and apply it. A batch can contain several faces, so the assignment affects
-the whole batch.
+## Editing tools
 
-**Edit shared material…** changes the material used by every batch referencing
-that course material. **Edit texture image…** opens the PNG workflow. Shared
-texture pixels and object assets can affect more than one course; review the
-listed uses in the relevant editor.
+The right inspector has **Level**, **Objects**, **Geometry**, **Settings** and
+**Tools** tabs. Larger editors open in their own windows from the **Edit** menu.
 
-### Making a custom track in Blender
+| Location | What it edits |
+| --- | --- |
+| Objects | Placed objects, coordinates, typed parameters, raw bytes, add/duplicate/delete |
+| Geometry → Mesh | Existing track vertices/faces, linked seams and OBJ track replacement |
+| Settings | Saved level defaults, references, fog, vehicles, laps and related settings |
+| Tools → Placement | Group transforms, snapping, alignment and surface placement |
+| Tools → Routes | Checkpoint AI lanes and directed AI-node links |
+| Geometry → Materials | Visual batch material assignments, shared course materials, UVs, colors and rendering |
+| Tools → Minimap | Map sprite, offsets, marker alignment, tint and PNG shortcut |
+| Tools → Cinematics | Actor/camera path nodes, timing, events and preview |
+| Edit → Course Builder… | Clear placed objects, draw checkpoints and create a start grid |
+| Edit → Course Names… | Existing English, German and French course names |
+| Edit → Texture & Sprite Browser / PNG… | PNG export/replacement, sprite anchors and texture timing |
+| Edit → Global Object Properties… | Shared object definitions and compatible artwork references |
+| Edit → Object Models & Animation… | Shared model vertices/UVs, static topology and animation clips |
 
-1. Export a size reference with **File → Export Wavefront .OBJ…**. Keep its OBJ,
-   MTL and texture files together.
-2. Import it into Blender at **Scale 1**, **Forward −Z**, **Up Y**. Build your new
-   track in a separate collection and export only the meshes you want to use.
-3. Export Wavefront OBJ at **Scale 1**, **Forward −Z**, **Up Y**, with UVs,
-   triangulation, materials and applied modifiers enabled. Save texture images
-   as PNGs and keep them with the MTL/OBJ.
-4. Select the target course in Workshop and use **Geometry → Import OBJ…**.
-   Review the preview, material mapping and resource report, then apply.
-5. Use **Course Builder** to clear unwanted placed objects and build or align the
-   checkpoint route and start grid. Save the project, export a ROM and play it.
+### Objects and parameters
 
-The OBJ exchange scale is **1 OBJ unit = 100 game units**. Fresh Workshop exports
-are scaled down by `0.01`; track import defaults to a `100` multiplier. Leave
-Blender's import/export scales at `1`. Object-model OBJ import restores the scale
-automatically. Coordinates displayed inside Workshop remain in game units.
+Click artwork, a marker or an object row to select it. Use Ctrl-click for a group.
+Drag the RGB arrows or center handle to move it, or use the inspector's XYZ and
+Step controls. A drag is one undo step; Escape or focus loss cancels it. Ctrl-drag
+snaps to Step. Supported objects also offer rotation and scale handles.
 
-Track replacement and placed objects are separate: importing geometry does not
-automatically relocate the existing checkpoints, starts or scenery. Driving
-surfaces are material properties, separate from the texture image.
+Double-click a parameter value to edit it. Descriptive names and tooltips explain
+fields whose meanings are verified from the game code. Tooltips retain the
+original source key and units. Unresolved fields remain **Unknown** with their
+byte offset. Padding and bytes with no identified reader are labeled separately.
+Names are display labels; stored keys and offsets remain compatible with projects.
 
-Static object-model imports support added or extruded faces. Animated models
-retain their existing topology and animation groups.
+**Edit raw parameter bytes / bits** exposes bytes from offset `0x08` onward.
+Values accept decimal, `0x` hex or `0b` binary; arrays use comma-separated integers.
+Object IDs and entry lengths remain protected in the raw editor. **Add…**,
+**Duplicate** (`Ctrl+D`) and **Delete** (`Ctrl+Delete`) manage complete entries.
+Templates preserve known stock values where available. The game still has finite
+shared runtime pools; exact ROM capacity does not guarantee a scene's RAM usage.
 
-## Preview and beta notes
+### Materials
 
-Sprites, models, special artwork and logic markers have separate visibility
-controls. Animation playback, sky, fog, texture motion and water controls help
-preview supported artwork.
+Open **Geometry → Materials**, click part of the track to select its whole batch,
+and choose **Change this batch’s material…**. A resizable thumbnail picker previews
+existing course materials before **Apply**; **Cancel** restores the current view.
+The panel shows its texture, driving surface and affected face count together.
 
-Available ROM space is **storage**, not extra runtime RAM. A change fitting in
-the ROM does not guarantee that an arbitrarily large course or object population
-fits the game's memory limits. The importer and export report provide checks
-and explanations when a limit is exceeded.
+**Edit shared material…** changes a texture reference and/or driving surface for
+all batches using that course material. **Edit texture image…** opens the PNG
+browser for shared pixel edits. Each operation displays its scope. UVs, vertex
+colors and rendering flags are under the expandable advanced controls.
+See [Track materials](docs/TRACK_MATERIALS.md) for the complete workflow.
 
-Some parameters are still unknown. They retain their byte offsets rather than a description. 
-Keep project backups while exploring unfamiliar fields.
+### Tracks and Blender
 
+Use **File → Export Wavefront OBJ…** to export track geometry, MTL materials and
+PNG textures. For replacement, select the target course, open **Geometry → Import
+OBJ…**, review its preview/materials/resource report, and Apply. The dialog shows
+its target course. Track replacement leaves placed objects to be aligned with the
+new course; **Course Builder** can clear them or rebuild checkpoints and starts.
 
-## Credits and acknowledgements
+Track and object-model OBJ exports use compact **×0.01** coordinates. Leave
+Blender import/export **Scale at 1**. Track import defaults to a **100** multiplier;
+object-model import restores **×100** automatically. Numeric editor fields and
+animation JSON retain game units. Use fresh exports with this scale convention.
 
-### Diddy Kong Racing decompilation
+Static object meshes support added/extruded faces. Animated models retain their
+existing topology and animation groups. The model editor has its own preview and
+staged Apply workflow. Track faces use batch texture assignments; changing one
+batch can affect several faces. Driving surfaces are separate material data.
 
-Special thanks to **DavidSM64 and all contributors to the
-[Diddy Kong Racing decompilation project](https://github.com/DavidSM64/Diddy-Kong-Racing)**.
+## Artwork and animation preview
 
-Their work provided the authoritative reference for the game's binary layouts,
-asset tables, compression, rendering structures, object parameters and runtime
-behavior used to develop DKR Workshop. The project's tools and documentation
-were also essential references for understanding how the original game loads
-and uses its data.
+**Sprites**, **Models** and **Special art** control artwork independently of
+logic markers. Play, Rewind and the time slider preview model clips, supported
+sprite sequences, actor paths, fish/butterflies, texture motion and approximate
+water. **Scene** selects a cinematic channel alongside ambient actors. Selected
+clip overrides and preview toggles do not change saved data.
 
-### Libraries and tools
+The viewport previews supported graphics and paths. It does not run the game:
+AI, progression scripts, audio, particles, physics and some live camera/racer
+substitutions are not simulated. Model lighting and water are approximations.
+Use the exported ROM in your emulator or on hardware to assess gameplay.
 
-DKR Workshop uses **Python**, **PySide6 / Qt**, **PyOpenGL**, **NumPy**, **Pillow**
-and **Zstandard**. The separate executable edition is packaged with **Nuitka**.
-Thanks to the maintainers and contributors of these projects.
+## Guides
 
-### Original game
+- [Blender track creation and export](docs/BLENDER_TRACK_GUIDE.md)
+- [Course Builder](docs/COURSE_BUILDING.md) and [course names](docs/COURSE_NAMES.md)
+- [Object placement](docs/PLACEMENT_TOOLS.md) and [object creation](docs/OBJECT_EDITING.md)
+- [Checkpoint fields](docs/CHECKPOINT_FIELDS.md), [AI nodes](docs/AI_NODES.md)
+  and [route fields](docs/ROUTE_RESEARCH.md)
+- [Verified parameter labels](docs/PARAMETER_LABELS.md)
+- [Track geometry](docs/GEOMETRY_EDITING.md), [segmented import](docs/SEGMENTED_TRACK_IMPORT.md)
+  and [custom artwork](docs/CUSTOM_TRACK_ARTWORK.md)
+- [Materials and driving surfaces](docs/TRACK_MATERIALS.md)
+- [Texture/sprite PNG workflow](docs/IMAGE_ASSETS.md) and [minimap settings](docs/MINIMAP_SETTINGS.md)
+- [Global object properties](docs/GLOBAL_OBJECT_PROPERTIES.md),
+  [object models/animation](docs/OBJECT_MODEL_EDITING.md) and [static model import](docs/STATIC_OBJECT_IMPORT.md)
+- [Level settings](docs/LEVEL_SETTINGS.md), [environment preview](docs/ENVIRONMENT_PREVIEW.md)
+  and [cinematic paths](docs/CINEMATIC_PATHS.md)
+- [Runtime memory snapshots](docs/RUNTIME_CAPACITY.md)
+- [Editing the Python code](docs/CODE_EDITING_GUIDE.md),
+  [binary format reference](docs/FORMAT_REFERENCE.md) and [project format](docs/PROJECT_FORMAT.md)
 
-**Diddy Kong Racing** was developed by **Rare** and published by **Nintendo**.
-Game characters, artwork, names and other game assets belong to their respective
-owners. The application icon uses Taj and lettering from the original game.
+## Development
 
-DKR Workshop is an unofficial fan project and is not affiliated with or endorsed
-by Rare or Nintendo. No game ROM is included.
+All application code lives in `src/`. `src/core/` contains headless data/editing
+logic; `src/renderer/` handles OpenGL and camera behavior; `src/ui/` contains Qt
+widgets. The local decomp checkout provides authoritative format references.
+No proprietary ROM data belongs in source control.
+
+```powershell
+python -m src.main --rom "your-original-rom.z64" --level 5
+python -m src.main --project "my-course.dkrproj"
+python -m pytest -q
+```
+
+ROM integration checks use a locally supplied original ROM; they skip when it
+is absent. Synthetic parser tests need no game data. Native graphics checks
+require a desktop display. Current verification is recorded in [STATUS.md](STATUS.md).
+Historical implementation plans and audit reports are retained under `docs/`
+as development records, separate from this usage guide.

@@ -1,0 +1,17 @@
+.venv/
+__pycache__/
+.pytest_cache/
+*.egg-info/
+build/
+dist/
+artifacts/
+# User-owned ROMs and extracted proprietary assets stay local.
+*.z64
+*.v64
+*.n64
+*.dkrproj
+research/
+# Personal Blender/test assets may contain extracted game artwork.
+/*.obj
+/*.mtl
+/test tracks/
