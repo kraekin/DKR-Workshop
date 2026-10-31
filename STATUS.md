@@ -1,23 +1,28 @@
-# v0.28.0 GitHub handoff — verified (2026-10-31)
+# Dependency locking and animation randomness v0.28.0 — complete (2026-10-31)
 
-User explicitly authorized pushing all completed local changes to
-https://github.com/kraekin/DKR-Workshop, target main. Fresh remote preflight:
-origin/main is b02545e, an ancestor of the six completed feature/fix commits.
-No conflicting remote changes or uncommitted application files were present.
+Generated pylock.toml (PEP751) for the verified Windows x64/CPython3.12 toolchain:
+20 pinned runtime/test/build packages with artifact SHA256 hashes. CI installs
+the lock directly via pinned uv0.11.14; isolated build dependencies are version-
+constrained too. Runtime requirements.txt now pins transitive versions and hashes;
+source setup uses --require-hashes/--only-binary. Input/toolchain versions remain
+deliberate. Updated source/build/release guides and lock-regeneration instructions.
+Two CI release checks prevent input/lock/runtime drift or missing artifact hashes.
 
-Handoff includes generated minimaps, batch image tools, BPS/xdelta patch export,
-unified three-tab Course Builder, focus-aware wheel editing, explicit optimized
-smoke checks, retired bush research tool, hashing review and constrained extracted
-JSON reads. Version0.28.0. Existing projects/ROM protections remain compatible.
+About balloons now use SystemRandom (OS-backed entropy). This is decorative
+animation, not credentials/security decisions. Position/speed/phase/variant/scale
+ranges and animation timing unchanged; deterministic test PRNG fixtures retained.
+Release notes updated; app version remains0.28.0.
 
-Verification:1,906 full-suite tests passed at smoke/hash checkpoint e5c6175.
-Final JSON hardening ceb261d passed98 path/ROM/project and434 loader checks,
-plus native cross-directory CLI project startup; original ROM unchanged.
-Optimized native smoke and Course Builder input checks passed previously.
-Review guides: docs/HASHING_SAFETY.md, docs/PATH_SAFETY.md. Release notes:
-docs/RELEASE_NOTES_0.28.0.md. User files, captures, builds and editors preserved.
+Verified a fresh isolated environment installed all20 locked packages, pip check
+passes and repeat uv sync dry-run reports no changes.25 release/camera/artwork
+checks pass in0.62s using locked pytest8.4.2; app --help imports and Windows build
+--prepare-only pass. Native About artwork/animation/pop check passes with the
+locked runtime; original ROM unchanged.146 Python files parse and diff checks
+pass. Existing project environment, user files, builds and editors preserved.
+Ignored evidence: artifacts/final-sonar-lock-tests.xml, sonar-about-random.png,
+verify_about_random.py. Owned validation environment/pytest fixtures cleaned;
+download cache retained. No standalone EXE compile or gameplay ROM generated.
 
-Next: user reviews GitHub main and refreshed Sonar analysis after this handoff.
-Push main normally and verify matching remote/local tips. No version tag or
-manual build/release requested; no emulator or persistent gameplay ROM output.
-Future changes remain local unless separately authorized.
+Next: user reviews/pushes these final Sonar fixes and re-scans. Changes stay local;
+no remote publishing, version tag or release requested for this refinement.
+Previous published handoff9e02ca5 remains intact.

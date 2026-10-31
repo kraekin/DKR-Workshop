@@ -4,7 +4,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 import logging
 import math
-import random
+from random import SystemRandom
 
 import numpy as np
 from PySide6.QtCore import Qt, QTimer, QPointF, QRectF, Slot
@@ -19,6 +19,10 @@ from PySide6.QtWidgets import (
 from src.core.about_artwork import load_about_artwork
 from src.core.rom import RomImage
 from src.core.textures import Pixels
+
+
+# Cosmetic animation only; use OS-backed randomness with no shared PRNG state.
+_ANIMATION_RANDOM = SystemRandom()
 
 
 def _image(pixels: Pixels) -> QImage:
@@ -83,10 +87,10 @@ class TimberIslandCanvas(QWidget):
 
     def _spawn_balloon(self, random_y: bool = False) -> _Balloon:
         return _Balloon(
-            random.uniform(30, self.width()-30),
-            random.uniform(20, self.height()+20) if random_y else self.height()+40.0,
-            random.uniform(0.6, 1.3), random.uniform(0, math.tau),
-            random.randrange(6), random.uniform(0.75, 1.15),
+            _ANIMATION_RANDOM.uniform(30, self.width()-30),
+            _ANIMATION_RANDOM.uniform(20, self.height()+20) if random_y else self.height()+40.0,
+            _ANIMATION_RANDOM.uniform(0.6, 1.3), _ANIMATION_RANDOM.uniform(0, math.tau),
+            _ANIMATION_RANDOM.randrange(6), _ANIMATION_RANDOM.uniform(0.75, 1.15),
         )
 
     def _balloon_rect(self, balloon: _Balloon) -> QRectF:

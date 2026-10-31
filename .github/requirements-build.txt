@@ -1,4 +1,5 @@
-# Windows x64 / CPython 3.12 release toolchain. Update deliberately and verify CI.
+# Inputs for the Windows x64 / CPython 3.12 pylock.toml. Regenerate before use.
+# Keep the verified toolchain and transitive versions stable; see docs/WINDOWS_BUILDS.md.
 Nuitka==4.2.1
 ordered-set==4.1.0
 PySide6==6.11.2
@@ -7,3 +8,12 @@ numpy==2.2.6
 Pillow==11.3.0
 zstandard==0.23.0
 pytest==8.4.2
+colorama==0.4.6
+iniconfig==2.3.0
+packaging==25.0
+pluggy==1.6.0
+Pygments==2.19.2
+pip==25.0.1
+setuptools==80.9.0
+wheel==0.45.1
+uv==0.11.14

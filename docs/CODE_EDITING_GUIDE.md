@@ -54,7 +54,8 @@ On a different computer with no environment yet, the initial setup is:
 
 ```powershell
 python -m venv .venv
-.\.venv\Scripts\python.exe -m pip install -e ".[dev]"
+.\.venv\Scripts\python.exe -m pip install uv==0.11.14
+.\.venv\Scripts\python.exe -m uv pip sync --python .venv/Scripts/python.exe --build-constraints .github/requirements-build.txt pylock.toml
 ```
 
 You do not need to repeat installation after ordinary source edits.

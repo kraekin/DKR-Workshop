@@ -4,7 +4,7 @@
 compiles a self-contained Windows x64 EXE on GitHub's Windows runners. No local
 Nuitka compile, ROM, extracted assets, signing certificate or personal token is
 needed. The build uses CPython 3.12, MSVC, the PySide6 plugin, the existing icon
-and pinned dependencies in `.github/requirements-build.txt`.
+and the hashed transitive dependency lock in `pylock.toml`.
 
 ## Build the current code without making a release
 
@@ -53,7 +53,8 @@ The release is unsigned, matching the existing release process.
 For a local rebuild, use a fresh 64-bit Windows CPython 3.12 environment:
 
 ```powershell
-python -m pip install -r .github/requirements-build.txt
+python -m pip install uv==0.11.14
+python -m uv pip sync --python python --build-constraints .github/requirements-build.txt pylock.toml
 python .github/scripts/build_windows.py
 python .github/scripts/verify_windows.py
 ```
@@ -61,3 +62,34 @@ python .github/scripts/verify_windows.py
 Outputs go to ignored `artifacts/windows-build/` and `artifacts/windows-release/`.
 The builder refuses to overwrite nonempty output folders. Existing local
 `build/nuitka/` releases and running editors are unaffected.
+
+## Dependency locks
+
+`pylock.toml` is a generated PEP 751 lock for 64-bit Windows / CPython 3.12. It
+pins the complete runtime, pytest and Nuitka toolchain, including transitive
+packages and artifact SHA-256 hashes. CI installs this file directly. The
+bootstrap uv version is pinned too, and isolated source-build dependencies are
+constrained by `.github/requirements-build.txt`.
+
+For runtime-only source installation, `requirements.txt` contains matching pinned
+runtime versions and artifact hashes; use `pip install --require-hashes
+--only-binary=:all: -r requirements.txt`. These wheels avoid implicit source builds.
+The full toolchain lock targets the supported release environment; regenerate
+and verify an appropriate lock before changing its Python/platform target.
+
+To install the full development/build environment, activate a fresh CPython 3.12
+virtual environment and use the two install commands above. `uv pip sync` makes
+that environment match the lock, so use a dedicated environment. It is not needed
+to launch the downloaded EXE.
+
+To update dependencies deliberately, edit `.github/requirements-build.txt`, keep
+runtime choices within `pyproject.toml`, then regenerate both files with uv 0.11.14:
+
+```powershell
+uv --no-config pip compile pyproject.toml .github/requirements-build.txt --extra dev --python .venv/Scripts/python.exe --python-version 3.12 --python-platform x86_64-pc-windows-msvc --default-index https://pypi.org/simple --format pylock.toml --output-file pylock.toml
+uv --no-config pip compile pyproject.toml --constraint .github/requirements-build.txt --python .venv/Scripts/python.exe --python-version 3.12 --python-platform x86_64-pc-windows-msvc --default-index https://pypi.org/simple --generate-hashes --output-file requirements.txt
+```
+
+Review package/version/hash changes, install into a fresh environment, run the
+ROM-free build checks and native app checks, and commit both generated files with
+their inputs. `tests/test_release_build.py` checks lock/input/runtime consistency.

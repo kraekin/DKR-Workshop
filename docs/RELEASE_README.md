@@ -35,7 +35,7 @@ For reference, the supported original ROM's SHA-1 after byte-order normalization
 
    ```powershell
    python -m venv .venv
-   .\.venv\Scripts\python.exe -m pip install -r requirements.txt
+   .\.venv\Scripts\python.exe -m pip install --require-hashes --only-binary=:all: -r requirements.txt
    ```
 
 3. Double-click **DKR Workshop.cmd** to launch the editor.

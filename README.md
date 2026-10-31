@@ -30,12 +30,13 @@ releases and manual downloads.
 To run from source:
 
 Python 3.11+ and an OpenGL 3.3 Core desktop graphics driver are required.
+Use 64-bit CPython 3.12 for the verified Windows dependency set below.
 From the project directory in PowerShell:
 
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
-python -m pip install -e ".[dev]"
+python -m pip install --require-hashes --only-binary=:all: -r requirements.txt
 python -m src.main
 ```
 
@@ -225,6 +226,11 @@ All application code lives in `src/`. `src/core/` contains headless data/editing
 logic; `src/renderer/` handles OpenGL and camera behavior; `src/ui/` contains Qt
 widgets. The local decomp checkout provides authoritative format references.
 No proprietary ROM data belongs in source control.
+
+Runtime requirements are pinned with hashes. The complete Windows/Python 3.12
+runtime, test and Nuitka toolchain is locked in `pylock.toml`; see
+[locked setup and updates](docs/WINDOWS_BUILDS.md#dependency-locks) for installing
+the test/build environment and deliberately updating dependencies.
 
 ```powershell
 python -m src.main --rom "your-original-rom.z64" --level 5
