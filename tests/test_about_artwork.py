@@ -73,7 +73,7 @@ def test_stock_about_artwork_is_complete_and_read_only() -> None:
     if not paths:
         pytest.skip('Local original Rev 1 ROM not present')
     rom = RomImage.from_file(paths[0])
-    original = hashlib.sha1(rom.data).hexdigest()
+    original = hashlib.sha256(rom.data).hexdigest()
     result = art.load_about_artwork(rom)
     assert len(result.balloons) == 6 and len(result.pop_frames) == 10
     assert result.logo.shape == (64, 162, 4)
@@ -82,4 +82,4 @@ def test_stock_about_artwork_is_complete_and_read_only() -> None:
     assert len({p.shape for p in result.pop_frames}) == 1
     assert all(not p.flags.writeable for p in (*result.balloons, *result.pop_frames, result.logo,
                                              result.background, result.sun, result.zipper))
-    assert hashlib.sha1(rom.data).hexdigest() == original
+    assert hashlib.sha256(rom.data).hexdigest() == original

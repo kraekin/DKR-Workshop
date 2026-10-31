@@ -6,6 +6,8 @@ production project's structural writer or a creation/deletion UI.
 """
 from __future__ import annotations
 
+# SHA-1 preserves legacy ROM/project identifiers, never authentication. See docs/HASHING_SAFETY.md.
+
 from collections import Counter
 from dataclasses import dataclass, replace
 import hashlib
@@ -363,7 +365,7 @@ class StructuralDraft:
         self.model = session.current_map(map_id)
         self.source_raw = raw_map(self.model)
         self.source_digest = hashlib.sha256(self.source_raw).hexdigest()
-        self.source_ids = tuple(f'base:{map_id}:{o.index}:{hashlib.sha1(session.original_map(map_id).objects[o.index].raw_data).hexdigest()}'
+        self.source_ids = tuple(f'base:{map_id}:{o.index}:{hashlib.sha1(session.original_map(map_id).objects[o.index].raw_data, usedforsecurity=False).hexdigest()}'
                                 for o in self.model.objects)
         self.templates = dict(zip(self.source_ids, self.model.objects))
         self.entries = tuple(DraftEntry(identity, identity, o.raw_data) for identity, o in zip(self.source_ids, self.model.objects))

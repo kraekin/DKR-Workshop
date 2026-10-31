@@ -235,5 +235,7 @@ python -m pytest -q
 ROM integration checks use a locally supplied original ROM; they skip when it
 is absent. Synthetic parser tests need no game data. Native graphics checks
 require a desktop display. Current verification is recorded in [STATUS.md](STATUS.md).
+See the [hashing safety review](docs/HASHING_SAFETY.md) for legacy fingerprint
+compatibility and Sonar security-hotspot review notes.
 Historical implementation plans and audit reports are retained under `docs/`
 as development records, separate from this usage guide.

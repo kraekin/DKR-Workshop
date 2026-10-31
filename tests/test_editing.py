@@ -186,7 +186,7 @@ def test_rebuilt_rom_reloads_edits_and_preserves_all_other_assets(session: EditS
             assert parsed.read_asset(AssetType.LEVEL_OBJECT_MAPS, map_id) == rom.read_asset(AssetType.LEVEL_OBJECT_MAPS, map_id)
     assert rebuilt[:0x10] == rom.data[:0x10]
     assert rebuilt[0x18:LUT_START] == rom.data[0x18:LUT_START]
-    assert hashlib.sha1(rom.source_path.read_bytes()).hexdigest() == REV1_SHA1
+    assert hashlib.sha1(rom.source_path.read_bytes(), usedforsecurity=False).hexdigest() == REV1_SHA1
     with pytest.raises(AssetError):
         RomImage.from_bytes(rebuilt)  # Stock identity verification stays strict.
 

@@ -5,6 +5,8 @@ Compression: DKRCompression.cpp. Checksums: local tools/n64crc.c:92-163.
 """
 from __future__ import annotations
 
+# SHA-1 preserves legacy ROM/project identifiers, never authentication. See docs/HASHING_SAFETY.md.
+
 from dataclasses import dataclass, replace
 import hashlib
 import json
@@ -222,7 +224,7 @@ class EditSession:
     """Verified base ROM, reversible existing-asset overlays and shared history."""
 
     def __init__(self, rom: RomImage, database: ObjectDatabase | None = None) -> None:
-        if hashlib.sha1(rom.data).hexdigest() != REV1_SHA1:
+        if hashlib.sha1(rom.data, usedforsecurity=False).hexdigest() != REV1_SHA1:
             raise EditError("Editing requires the verified original USA Rev 1 base ROM")
         self.rom = rom
         self.database = database if database is not None else load_object_database(rom)

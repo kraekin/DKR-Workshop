@@ -19,6 +19,10 @@
 - **Safer scrolling:** scrolling over unfocused spinners, dropdowns or sliders
   scrolls their pane without changing values or taking focus. Click or tab into
   a control to adjust it with the wheel. Viewport zoom is unchanged.
+- **Validation cleanup:** native smoke checks stay active under Python
+  optimization and report explicit failures. Retired the standalone bush research
+  experiment. Reviewed hashing uses and marked legacy SHA-1 fingerprints as
+  non-security uses while preserving existing project compatibility.
 
 Existing projects remain compatible. Minimap generation replaces an existing
 sprite's first-frame pixels; batch images retain existing dimensions, formats,

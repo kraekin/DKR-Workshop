@@ -308,7 +308,7 @@ def test_mixed_image_project_rom_roundtrip_and_untouched_entries(session: EditSe
     for section in range(50):
         if section not in (2, 3, 4, 5, 12, 13, 23, 26, 27): assert rebuilt.section(section) == s.rom.section(section)
     assert len(output) == len(s.rom.data) and struct.unpack_from(">2I", output, 16) == n64_checksums(output)
-    assert hashlib.sha1(s.rom.source_path.read_bytes()).hexdigest() == REV1_SHA1
+    assert hashlib.sha1(s.rom.source_path.read_bytes(), usedforsecurity=False).hexdigest() == REV1_SHA1
 
 
 def test_capacity_failure_keeps_output_and_known_shared_uses(session: EditSession, tmp_path: Path) -> None:

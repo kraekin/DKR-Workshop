@@ -220,7 +220,7 @@ def test_in_memory_rom_changes_only_selected_definition_and_retains_tables(rom):
         if i != 48:
             assert exported.read_asset(AssetType.OBJECTS, i) == rom.read_asset(AssetType.OBJECTS, i)
     assert load_object_database(exported).resolve(78).model_ids == (107,)
-    assert hashlib.sha1(rom.data).hexdigest() == '6d96743d46f8c0cd0edb0ec5600b003c89b93755'
+    assert hashlib.sha1(rom.data, usedforsecurity=False).hexdigest() == '6d96743d46f8c0cd0edb0ec5600b003c89b93755'
 
 
 def test_global_special_texture_custom_artwork_and_track_project_roundtrip(rom, tmp_path):

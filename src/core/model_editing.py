@@ -5,6 +5,8 @@ This writer never allocates a new model, vertex group or animation slot.
 """
 from __future__ import annotations
 
+# SHA-1 preserves legacy ROM/project identifiers, never authentication. See docs/HASHING_SAFETY.md.
+
 from dataclasses import dataclass
 from collections import Counter
 import hashlib
@@ -260,7 +262,7 @@ def validate_clip(original: bytes, raw: bytes, model: ObjectModel) -> AnimationC
 def animation_document(raw: bytes, model: ObjectModel) -> dict[str, object]:
     clip = AnimationClip.from_bytes(raw, model)
     return {'format': 'dkr-vertex-animation', 'version': 1, 'groups': model.animated_count,
-            'frames': clip.frame_count, 'mapping_sha1': hashlib.sha1(model.animated_indices.astype('>i2').tobytes()).hexdigest(),
+            'frames': clip.frame_count, 'mapping_sha1': hashlib.sha1(model.animated_indices.astype('>i2').tobytes(), usedforsecurity=False).hexdigest(),
             'offsets': clip_offsets(clip, model).tolist()}
 
 

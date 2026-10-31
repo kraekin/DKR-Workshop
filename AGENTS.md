@@ -94,7 +94,6 @@ dkr-track-viewer/
 │   │   ├── structure.py        # Read-only resource audit and isolated structural research drafts
 │   │   ├── object_structure.py # All-type templates, stable editor identities, structural bounds and v7 rows
 │   │   ├── runtime_audit.py    # Read-only Rev1 RDRAM/BizHawk state measurements
-│   │   ├── bush_experiment.py  # Restricted user-run Phase20 one-bush research preview/export
 │   │   ├── bizhawk_capture.lua # Optional user-run read-only RDRAM capture
 │   │   ├── editing.py          # Object/group edit history, project overlays and ROM export
 │   │   ├── placement.py        # Verified transforms, grouped patches and terrain queries
@@ -173,7 +172,6 @@ dkr-track-viewer/
     ├── test_object_structure.py # Phase21 all304 types, stable IDs, v7 projects, graph warnings and export
     ├── test_inplace_inflate.py  # Source-model map inflater, unsafe overlap and malformed streams
     ├── test_runtime_audit.py    # Bounded RAM/state readers, byte orders, allocator/counter checks
-    ├── test_bush_experiment.py  # One-clone profile, residency/refusals, reload and no-overwrite publication
     ├── test_capture_helper.py   # Standalone Lua with stub APIs; no emulator execution
     └── test_mouse_move.py
 ```
@@ -294,14 +292,11 @@ RDRAM/BizHawk2.10 snapshot measurements. Two historical hub states are initial
 observations, not peak bounds. Full827 tests pass after the Lua main-chunk fix;
 nine loader/read-API regressions cover the capture helper. Native snapshot/editor
 checks passed previously. See docs/RUNTIME_CAPACITY.md. Normal project
-version6/writer permissions are unchanged. v1.13.2 adds a restricted user-run
-one-bush research command, with in-memory preview by default and explicit
-no-overwrite export for the user's Phase20 gameplay check. See
-docs/BUSH_EXPERIMENT.md for exact costs, the additional257-entry interaction
-array/fixed shadow buffers and remaining gameplay gates. This is not Phase21 UI.
-Full853 headless tests pass (92.94s), including26 research-command tests;
-real six-capture preview/help and compileall pass. No persistent review ROM or
-emulator run. Next is the user's explicit export/fresh-load gameplay check.
+version6/writer permissions are unchanged. Historical v1.13.2 research measured
+resident scenery costs, the additional257-entry interaction array and fixed
+shadow buffers. The standalone research/export command and its dedicated tests
+were retired at the user's request in v0.28.0; retain the read-only runtime audit
+and the historical measurements in docs/RUNTIME_CAPACITY.md.
 Phase21 scope was explicitly broadened by the user after successful one-bush
 gameplay: "dont keep other objects gated ... just do all of them ... I can test
 it myself". This supersedes the earlier Phase21 type/reference allowlist gate.

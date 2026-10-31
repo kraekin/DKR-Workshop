@@ -18,6 +18,15 @@ if TYPE_CHECKING:
     from src.renderer.viewport import Viewport
 
 
+class SmokeCheckError(RuntimeError):
+    """A failed native smoke check, including when Python runs with -O."""
+
+
+def _check(condition: object, message: str) -> None:
+    if not condition:
+        raise SmokeCheckError(message)
+
+
 def smoke_test(app: QApplication, window: MainWindow, screenshot: Path) -> int:
     """Exercise the real GL window and, when supplied, its loaded catalog."""
     import numpy as np
@@ -44,25 +53,25 @@ def smoke_test(app: QApplication, window: MainWindow, screenshot: Path) -> int:
         if window.catalog is not None:
             catalog = window.catalog
             tree = window.level_panel.tree
-            assert tree.topLevelItemCount() == len(catalog.levels)
+            _check(tree.topLevelItemCount() == len(catalog.levels), 'Smoke check failed: tree.topLevelItemCount() == len(catalog.levels)')
             chosen = next((level for level in catalog.levels if level.name == "Ancient Lake"), catalog.levels[0])
             window.level_panel.search.setText(chosen.name)
             QTest.qWait(60)
             visible = [tree.topLevelItem(i) for i in range(tree.topLevelItemCount())
                        if not tree.topLevelItem(i).isHidden()]
-            assert visible and any(item.text(0) == chosen.name for item in visible)
+            _check(visible and any(item.text(0) == chosen.name for item in visible), 'Smoke check failed: visible and any((item.text(0) == chosen.name for item in visible))')
             window.level_panel.select_level(chosen.index)
-            assert window.selected_level == chosen
+            _check(window.selected_level == chosen, 'Smoke check failed: window.selected_level == chosen')
             details = window.object_inspector.tree
             values = {details.topLevelItem(i).text(0): details.topLevelItem(i).text(1)
                       for i in range(details.topLevelItemCount())}
-            assert values["Geometry ID"] == str(chosen.header.geometry_id)
-            assert values["Collectables map"] == str(chosen.header.object_map_id)
+            _check(values["Geometry ID"] == str(chosen.header.geometry_id), "Smoke check failed: values['Geometry ID'] == str(chosen.header.geometry_id)")
+            _check(values["Collectables map"] == str(chosen.header.object_map_id), "Smoke check failed: values['Collectables map'] == str(chosen.header.object_map_id)")
             window.level_panel.search.setText("no-match-catalog-smoke-check")
-            assert all(tree.topLevelItem(i).isHidden() for i in range(tree.topLevelItemCount()))
+            _check(all(tree.topLevelItem(i).isHidden() for i in range(tree.topLevelItemCount())), 'Smoke check failed: all((tree.topLevelItem(i).isHidden() for i in range(tree.topLevelItemCount())))')
             window.level_panel.search.clear()
-            assert not window.load_rom(Path("artifacts/nonexistent-rom-for-smoke.z64"), show_errors=False)
-            assert window.catalog is catalog and window.selected_level == chosen
+            _check(not window.load_rom(Path("artifacts/nonexistent-rom-for-smoke.z64"), show_errors=False), "Smoke check failed: not window.load_rom(Path('artifacts/nonexistent-rom-for-smoke.z64'), show_errors=False)")
+            _check(window.catalog is catalog and window.selected_level == chosen, 'Smoke check failed: window.catalog is catalog and window.selected_level == chosen')
             print(f"CATALOG PASS | {len(catalog.levels)} levels | filter, selection, metadata, failed-load preservation")
         camera_speed_smoke_test(window)
         camera_pan_smoke_test(viewport)
@@ -80,21 +89,21 @@ def smoke_test(app: QApplication, window: MainWindow, screenshot: Path) -> int:
         QTest.keyPress(viewport, Qt.Key.Key_W)
         QTest.qWait(250)
         QTest.keyRelease(viewport, Qt.Key.Key_W)
-        assert float(np.linalg.norm(viewport.camera.position - original)) > 0.5, "W did not move camera"
+        _check(float(np.linalg.norm(viewport.camera.position - original)) > 0.5, "W did not move camera")
         viewport.reset_camera()
         for key in (Qt.Key.Key_A, Qt.Key.Key_S, Qt.Key.Key_D, Qt.Key.Key_Q, Qt.Key.Key_E):
             before = viewport.camera.position.copy()
             QTest.keyPress(viewport, key)
             QTest.qWait(70)
             QTest.keyRelease(viewport, key)
-            assert not np.allclose(before, viewport.camera.position), f"Movement key {key} failed"
+            _check(not np.allclose(before, viewport.camera.position), f"Movement key {key} failed")
         viewport.reset_camera()
         QTest.keyPress(viewport, Qt.Key.Key_Shift)
         QTest.keyPress(viewport, Qt.Key.Key_W)
         QTest.qWait(250)
         QTest.keyRelease(viewport, Qt.Key.Key_W)
         QTest.keyRelease(viewport, Qt.Key.Key_Shift)
-        assert float(np.linalg.norm(viewport.camera.position - original)) > 10.0, "Shift boost failed"
+        _check(float(np.linalg.norm(viewport.camera.position - original)) > 10.0, "Shift boost failed")
         QTest.keyClick(viewport, Qt.Key.Key_F)
         np.testing.assert_allclose(viewport.camera.position, original)
         QTest.mousePress(viewport, Qt.MouseButton.RightButton, pos=viewport.rect().center())
@@ -106,24 +115,24 @@ def smoke_test(app: QApplication, window: MainWindow, screenshot: Path) -> int:
             Qt.MouseButton.NoButton, Qt.MouseButton.RightButton, Qt.KeyboardModifier.NoModifier,
         )
         QApplication.sendEvent(viewport, mouse_event)
-        assert viewport.camera.yaw != yaw, "Right mouse look failed"
+        _check(viewport.camera.yaw != yaw, "Right mouse look failed")
         QTest.mouseRelease(viewport, Qt.MouseButton.RightButton, pos=center)
-        assert not viewport._looking and viewport.mouseGrabber() is None, "Mouse capture was not released"
+        _check(not viewport._looking and viewport.mouseGrabber() is None, "Mouse capture was not released")
         QTest.mousePress(viewport, Qt.MouseButton.RightButton, Qt.KeyboardModifier.AltModifier, pos=center)
         distance = float(np.linalg.norm(viewport.camera.position - viewport.camera.target))
         QApplication.sendEvent(viewport, mouse_event)
-        assert np.isclose(np.linalg.norm(viewport.camera.position - viewport.camera.target), distance), "Orbit radius changed"
+        _check(np.isclose(np.linalg.norm(viewport.camera.position - viewport.camera.target), distance), "Orbit radius changed")
         QTest.keyClick(viewport, Qt.Key.Key_Escape)
-        assert not viewport._looking, "Escape did not release input"
+        _check(not viewport._looking, "Escape did not release input")
         fov = viewport.camera.fov
         QApplication.sendEvent(viewport, QWheelEvent(
             QPointF(center), QPointF(viewport.mapToGlobal(center)), QPoint(), QPoint(0, 120),
             Qt.MouseButton.NoButton, Qt.KeyboardModifier.NoModifier, Qt.ScrollPhase.NoScrollPhase, False,
         ))
-        assert viewport.camera.fov < fov, "Wheel zoom failed"
+        _check(viewport.camera.fov < fov, "Wheel zoom failed")
         QTest.keyPress(viewport, Qt.Key.Key_W)
         QApplication.sendEvent(viewport, QFocusEvent(QEvent.Type.FocusOut))
-        assert not viewport._keys, "Focus loss did not clear keys"
+        _check(not viewport._keys, "Focus loss did not clear keys")
         viewport.setFocus()
         viewport.reset_camera()
         # The adaptive grid is automatic/off in Perspective. Axes now live in
@@ -133,11 +142,11 @@ def smoke_test(app: QApplication, window: MainWindow, screenshot: Path) -> int:
         window.toolbar.axes.setChecked(True)
         QTest.qWait(100)
         frame = viewport.grabFramebuffer().convertToFormat(QImage.Format.Format_RGBA8888)
-        assert not frame.isNull(), "Framebuffer is empty"
+        _check(not frame.isNull(), "Framebuffer is empty")
         pixels = np.frombuffer(frame.constBits(), dtype=np.uint8).reshape(frame.height(), frame.bytesPerLine())
         rgb = pixels[:, :frame.width() * 4].reshape(frame.height(), frame.width(), 4)[:, :, :3]
-        assert np.unique(rgb.reshape(-1, 3), axis=0).shape[0] > 4, "Working grid was not drawn"
-        assert viewport.orientation.isVisible(), "Corner axes are hidden"
+        _check(np.unique(rgb.reshape(-1, 3), axis=0).shape[0] > 4, "Working grid was not drawn")
+        _check(viewport.orientation.isVisible(), "Corner axes are hidden")
         frame = viewport.orientation.grab().toImage().convertToFormat(QImage.Format.Format_RGBA8888)
         pixels = np.frombuffer(frame.constBits(), dtype=np.uint8).reshape(frame.height(), frame.bytesPerLine())
         rgb = pixels[:, :frame.width()*4].reshape(frame.height(), frame.width(), 4)[:, :, :3]
@@ -147,20 +156,20 @@ def smoke_test(app: QApplication, window: MainWindow, screenshot: Path) -> int:
         for channel, label in enumerate(("Red X", "Green Y", "Blue Z")):
             others = [index for index in range(3) if index != channel]
             dominant = signed_rgb[:, :, channel] > np.max(signed_rgb[:, :, others], axis=2) + 30
-            assert np.count_nonzero(dominant) > 5, f"{label} axis is missing"
+            _check(np.count_nonzero(dominant) > 5, f"{label} axis is missing")
         window.toolbar.grid.setChecked(False)
         window.toolbar.axes.setChecked(False)
         QTest.qWait(80)
-        assert not viewport.show_grid and not viewport.show_axes
+        _check(not viewport.show_grid and not viewport.show_axes, 'Smoke check failed: not viewport.show_grid and (not viewport.show_axes)')
         blank = viewport.grabFramebuffer()
-        assert blank.pixelColor(blank.width() // 2, blank.height() // 2).red() < 20
+        _check(blank.pixelColor(blank.width() // 2, blank.height() // 2).red() < 20, 'Smoke check failed: blank.pixelColor(blank.width() // 2, blank.height() // 2).red() < 20')
         window.toolbar.grid.setChecked(True)
         window.toolbar.axes.setChecked(True)
         QTest.qWait(100)
         viewport.makeCurrent()
-        assert GL.glGetError() == GL.GL_NO_ERROR, "GL error after input and toggles"
+        _check(GL.glGetError() == GL.GL_NO_ERROR, "GL error after input and toggles")
         viewport.doneCurrent()
-        assert not viewport.render_error
+        _check(not viewport.render_error, 'Smoke check failed: not viewport.render_error')
         screenshot.parent.mkdir(parents=True, exist_ok=True)
         viewport.preview_sky, viewport.preview_water, viewport.show_special_art = reference_overlays
         if track_model is not None:
@@ -170,7 +179,7 @@ def smoke_test(app: QApplication, window: MainWindow, screenshot: Path) -> int:
             window.toolbar.grid.setChecked(False)
             window.toolbar.axes.setChecked(False)
             QTest.qWait(180)
-            assert viewport._mesh is not None and viewport._mesh.visible_triangle_count > 0
+            _check(viewport._mesh is not None and viewport._mesh.visible_triangle_count > 0, 'Smoke check failed: viewport._mesh is not None and viewport._mesh.visible_triangle_count > 0')
 
             def frame_pixels() -> np.ndarray:
                 frame = viewport.grabFramebuffer().convertToFormat(QImage.Format.Format_RGBA8888)
@@ -179,82 +188,82 @@ def smoke_test(app: QApplication, window: MainWindow, screenshot: Path) -> int:
 
             baseline = frame_pixels()
             if window.current_textures:
-                assert window.toolbar.textures.isEnabled()
-                assert viewport._mesh.texture_handles, "No track textures were uploaded"
+                _check(window.toolbar.textures.isEnabled(), 'Smoke check failed: window.toolbar.textures.isEnabled()')
+                _check(viewport._mesh.texture_handles, "No track textures were uploaded")
                 window.toolbar.textures.setChecked(False)
                 QTest.qWait(80)
                 untextured = frame_pixels()
-                assert np.count_nonzero(untextured != baseline) > 1000, "Texture toggle did not change the image"
+                _check(np.count_nonzero(untextured != baseline) > 1000, "Texture toggle did not change the image")
                 window.toolbar.textures.setChecked(True)
                 QTest.qWait(80)
-                assert np.count_nonzero(frame_pixels() != baseline) == 0, "Texture toggle did not restore the image"
+                _check(np.count_nonzero(frame_pixels() != baseline) == 0, "Texture toggle did not restore the image")
             background = np.array([11, 16, 22], dtype=np.int16)
             coverage = np.max(np.abs(baseline[:, :, :3].astype(np.int16) - background), axis=2) > 20
-            assert np.count_nonzero(coverage) > 1000, "Track did not produce visible solid geometry"
+            _check(np.count_nonzero(coverage) > 1000, "Track did not produce visible solid geometry")
             full_calls = viewport._mesh.draw_call_count
             window.toolbar.wireframe.setChecked(True)
             QTest.qWait(80)
-            assert np.count_nonzero(frame_pixels() != baseline) > 100, "Wireframe did not change the image"
+            _check(np.count_nonzero(frame_pixels() != baseline) > 100, "Wireframe did not change the image")
             window.toolbar.wireframe.setChecked(False)
             window.toolbar.vertex_colors.setChecked(False)
             QTest.qWait(80)
-            assert np.count_nonzero(frame_pixels() != baseline) > 100, "Vertex-color toggle did not change the image"
+            _check(np.count_nonzero(frame_pixels() != baseline) > 100, "Vertex-color toggle did not change the image")
             window.toolbar.vertex_colors.setChecked(True)
             window.toolbar.bounds.setChecked(True)
             QTest.qWait(80)
-            assert np.count_nonzero(frame_pixels() != baseline) > 100, "Segment bounds did not appear"
+            _check(np.count_nonzero(frame_pixels() != baseline) > 100, "Segment bounds did not appear")
             window.toolbar.segments.setCurrentIndex(1)
             window.toolbar.isolate.setChecked(True)
             QTest.qWait(100)
-            assert viewport.isolate_segment and viewport.selected_segment == 0
-            assert viewport._mesh.draw_call_count < full_calls or len(track_model.segments) == 1
+            _check(viewport.isolate_segment and viewport.selected_segment == 0, 'Smoke check failed: viewport.isolate_segment and viewport.selected_segment == 0')
+            _check(viewport._mesh.draw_call_count < full_calls or len(track_model.segments) == 1, 'Smoke check failed: viewport._mesh.draw_call_count < full_calls or len(track_model.segments) == 1')
             expected_target = np.mean([track_model.segments[0].geometry_bounds.minimum,
                                        track_model.segments[0].geometry_bounds.maximum], axis=0)
             np.testing.assert_allclose(viewport.camera.target, expected_target)
-            assert window.grab().save(str(screenshot.with_name(screenshot.stem + "-segment.png")))
+            _check(window.grab().save(str(screenshot.with_name(screenshot.stem + "-segment.png"))), "Smoke check failed: window.grab().save(str(screenshot.with_name(screenshot.stem + '-segment.png')))")
             exported = window.export_current(screenshot.with_suffix(".obj"))
-            assert exported.segment_count == len(track_model.segments)
-            assert exported.triangle_count == track_model.triangle_count
+            _check(exported.segment_count == len(track_model.segments), 'Smoke check failed: exported.segment_count == len(track_model.segments)')
+            _check(exported.triangle_count == track_model.triangle_count, 'Smoke check failed: exported.triangle_count == track_model.triangle_count')
             if window.current_textures:
-                assert exported.material_path is not None and exported.material_path.is_file()
-                assert exported.texture_paths and all(path.is_file() for path in exported.texture_paths)
+                _check(exported.material_path is not None and exported.material_path.is_file(), 'Smoke check failed: exported.material_path is not None and exported.material_path.is_file()')
+                _check(exported.texture_paths and all(path.is_file() for path in exported.texture_paths), 'Smoke check failed: exported.texture_paths and all((path.is_file() for path in exported.texture_paths))')
                 print(f"TEXTURE PASS | {len(window.current_textures)} texture IDs | toggle, UV seams, MTL, {len(exported.texture_paths)} PNGs")
             window.toolbar.isolate.setChecked(False)
             window.toolbar.segments.setCurrentIndex(0)
             window.toolbar.bounds.setChecked(False)
             window.toolbar.culling.setChecked(False)
             QTest.qWait(80)
-            assert not viewport.cull_backfaces
+            _check(not viewport.cull_backfaces, 'Smoke check failed: not viewport.cull_backfaces')
             window.toolbar.culling.setChecked(True)
             if window.catalog is not None and len(window.catalog.levels) > 1:
                 current_level = window.selected_level
                 window.level_panel.select_level(0 if current_level.index != 0 else 1)
                 QTest.qWait(100)
-                assert viewport._mesh is not None and not viewport.render_error
+                _check(viewport._mesh is not None and not viewport.render_error, 'Smoke check failed: viewport._mesh is not None and (not viewport.render_error)')
                 window.level_panel.select_level(current_level.index)
             QTest.qWait(120)
             viewport.makeCurrent()
-            assert GL.glGetError() == GL.GL_NO_ERROR
+            _check(GL.glGetError() == GL.GL_NO_ERROR, 'Smoke check failed: GL.glGetError() == GL.GL_NO_ERROR')
             viewport.doneCurrent()
-            assert not viewport.render_error
+            _check(not viewport.render_error, 'Smoke check failed: not viewport.render_error')
             print(f"GEOMETRY PASS | {len(track_model.segments)} segments | {track_model.vertex_count} vertices | "
                   f"{track_model.triangle_count} triangles | colors, wireframe, bounds, isolation, culling, reload, OBJ")
             if window.current_objects:
                 inspector = window.object_inspector
-                assert inspector.object_list.topLevelItemCount() == len(window.current_objects)
+                _check(inspector.object_list.topLevelItemCount() == len(window.current_objects), 'Smoke check failed: inspector.object_list.topLevelItemCount() == len(window.current_objects)')
                 plain = frame_pixels()
                 window.toolbar.objects.setChecked(True)
                 QTest.qWait(100)
-                assert np.count_nonzero(frame_pixels() != plain) > 50, "Object gizmos did not render"
+                _check(np.count_nonzero(frame_pixels() != plain) > 50, "Object gizmos did not render")
                 window.toolbar.objects.setChecked(False)
                 window.toolbar.racelines.setChecked(True)
                 QTest.qWait(100)
                 if viewport.paths:
-                    assert np.count_nonzero(frame_pixels() != plain) > 50, "Racelines did not render"
+                    _check(np.count_nonzero(frame_pixels() != plain) > 50, "Racelines did not render")
                 window.toolbar.vehicle.setCurrentIndex(1)
                 window.toolbar.lane.setCurrentIndex(5)
                 QTest.qWait(60)
-                assert all(path.checkpoint_set in (-1, window.selected_level.header.checkpoint_sets[0]) for path in viewport.paths)
+                _check(all(path.checkpoint_set in (-1, window.selected_level.header.checkpoint_sets[0]) for path in viewport.paths), 'Smoke check failed: all((path.checkpoint_set in (-1, window.selected_level.header.checkpoint_sets[0]) for path in viewport.paths))')
                 window.toolbar.lane.setCurrentIndex(0)
                 window.toolbar.vehicle.setCurrentIndex(0)
                 window.toolbar.objects.setChecked(True)
@@ -267,7 +276,7 @@ def smoke_test(app: QApplication, window: MainWindow, screenshot: Path) -> int:
                 selected = candidates[0]
                 inspector.object_list.setCurrentItem(inspector.object_list.topLevelItem(selected))
                 QTest.qWait(30)
-                assert viewport.selected_object == selected
+                _check(viewport.selected_object == selected, 'Smoke check failed: viewport.selected_object == selected')
                 item = inspector.object_list.topLevelItem(selected)
                 inspector.object_list.scrollToItem(item)
                 QTest.mouseClick(inspector.object_list.viewport(),Qt.MouseButton.LeftButton,
@@ -279,24 +288,24 @@ def smoke_test(app: QApplication, window: MainWindow, screenshot: Path) -> int:
                 np.testing.assert_allclose(viewport.camera.target,window.current_objects[selected].position)
                 point = viewport.rect().center()
                 hit = viewport.pick_object(point.x(),point.y())
-                assert hit >= 0, "Ray did not intersect the focused marker"
+                _check(hit >= 0, "Ray did not intersect the focused marker")
                 QTest.mouseClick(viewport,Qt.MouseButton.LeftButton,pos=point)
                 QTest.qWait(50)
-                assert viewport.selected_object == hit
-                assert inspector.object_list.currentItem().data(0,Qt.ItemDataRole.UserRole) == hit
+                _check(viewport.selected_object == hit, 'Smoke check failed: viewport.selected_object == hit')
+                _check(inspector.object_list.currentItem().data(0,Qt.ItemDataRole.UserRole) == hit, 'Smoke check failed: inspector.object_list.currentItem().data(0, Qt.ItemDataRole.UserRole) == hit')
                 values = {inspector.properties.topLevelItem(i).text(0):inspector.properties.topLevelItem(i).text(1)
                           for i in range(inspector.properties.topLevelItemCount())}
-                assert values["Object ID (9-bit)"] == str(window.current_objects[hit].object_id)
-                assert values["Internal name"] == window.current_objects[hit].definition.name
-                assert window.grab().save(str(screenshot.with_name(screenshot.stem+"-selected-object.png")))
+                _check(values["Object ID (9-bit)"] == str(window.current_objects[hit].object_id), "Smoke check failed: values['Object ID (9-bit)'] == str(window.current_objects[hit].object_id)")
+                _check(values["Internal name"] == window.current_objects[hit].definition.name, "Smoke check failed: values['Internal name'] == window.current_objects[hit].definition.name")
+                _check(window.grab().save(str(screenshot.with_name(screenshot.stem+"-selected-object.png"))), "Smoke check failed: window.grab().save(str(screenshot.with_name(screenshot.stem + '-selected-object.png')))")
                 inspector.object_search.setText("no-match-object-smoke")
-                assert not viewport.visible_objects
+                _check(not viewport.visible_objects, 'Smoke check failed: not viewport.visible_objects')
                 inspector.object_search.clear()
                 inspector.category.setCurrentIndex(0)
                 viewport.select_object(-1)
                 viewport.reset_camera()
                 QTest.qWait(80)
-                assert not viewport.render_error
+                _check(not viewport.render_error, 'Smoke check failed: not viewport.render_error')
                 print(f"OBJECT PASS | {len(window.current_objects)} objects | {len(viewport.paths)} routes/edges | filters, picking, inspector, focus, vehicle/lane controls")
             if window.current_sprites:
                 window.toolbar.objects.setChecked(False)
@@ -306,28 +315,28 @@ def smoke_test(app: QApplication, window: MainWindow, screenshot: Path) -> int:
                 plain = frame_pixels()
                 window.toolbar.sprites.setChecked(True)
                 QTest.qWait(100)
-                assert viewport._sprite_mesh is not None
-                assert viewport._sprite_mesh.instance_count == len(window.current_sprites)
-                assert np.count_nonzero(frame_pixels() != plain) > 50, "Sprite artwork did not render"
+                _check(viewport._sprite_mesh is not None, 'Smoke check failed: viewport._sprite_mesh is not None')
+                _check(viewport._sprite_mesh.instance_count == len(window.current_sprites), 'Smoke check failed: viewport._sprite_mesh.instance_count == len(window.current_sprites)')
+                _check(np.count_nonzero(frame_pixels() != plain) > 50, "Sprite artwork did not render")
                 # Gizmo filters must not hide the physical artwork.
                 window.object_inspector.category.setCurrentIndex(window.object_inspector.category.findData("Checkpoints"))
                 QTest.qWait(60)
-                assert np.count_nonzero(frame_pixels() != plain) > 50
+                _check(np.count_nonzero(frame_pixels() != plain) > 50, 'Smoke check failed: np.count_nonzero(frame_pixels() != plain) > 50')
                 window.object_inspector.category.setCurrentIndex(0)
                 window.toolbar.sprites.setChecked(False)
                 QTest.qWait(80)
-                assert np.array_equal(frame_pixels(), plain), "Sprite toggle did not restore the track"
+                _check(np.array_equal(frame_pixels(), plain), "Sprite toggle did not restore the track")
                 window.toolbar.sprites.setChecked(True)
                 QTest.qWait(80)
-                assert not viewport.render_error
+                _check(not viewport.render_error, 'Smoke check failed: not viewport.render_error')
                 print(f"SPRITE PASS | {len(window.current_sprites)} instances | multi-tile billboards, toggle, independent gizmo filter")
             if window.edit_session is not None:
                 checkpoint_names_smoke_test(window, screenshot)
                 editing_smoke_test(window, screenshot)
                 mouse_move_smoke_test(window, screenshot)
-        assert viewport.grabFramebuffer().save(str(screenshot)), "Could not save screenshot"
+        _check(viewport.grabFramebuffer().save(str(screenshot)), "Could not save screenshot")
         if window.catalog is not None:
-            assert window.grab().save(str(screenshot.with_name(screenshot.stem + "-window.png")))
+            _check(window.grab().save(str(screenshot.with_name(screenshot.stem + "-window.png"))), "Smoke check failed: window.grab().save(str(screenshot.with_name(screenshot.stem + '-window.png')))")
         count = viewport.frame_count
         start = time.perf_counter()
         # QTest.qWait polls event delivery and can under-report rendering FPS.
@@ -366,7 +375,7 @@ def checkpoint_names_smoke_test(window: MainWindow, screenshot: Path) -> None:
     from src.core.parameter_labels import CHECKPOINT_PARAMETERS
 
     prior = window.edit_session
-    assert prior is not None
+    _check(prior is not None, 'Smoke check failed: prior is not None')
     session = EditSession(prior.rom, prior.database)
     inspector = window.object_inspector
     selected = next((i for i,o in enumerate(window.current_objects) if o.key == (5,48)),
@@ -385,11 +394,11 @@ def checkpoint_names_smoke_test(window: MainWindow, screenshot: Path) -> None:
 
         for p in original.parameters:
             row = parameter(p.name)
-            assert CHECKPOINT_PARAMETERS[p.name].label in row.text(0)
-            assert f"Original field: {p.name}" in row.toolTip(0)
-        assert "AI lane 0 lateral" in parameter("unkB").text(0)
-        assert "Unused byte" in parameter("unk18").text(0)
-        assert "Unused byte" in parameter("unk1B").text(0)
+            _check(CHECKPOINT_PARAMETERS[p.name].label in row.text(0), 'Smoke check failed: CHECKPOINT_PARAMETERS[p.name].label in row.text(0)')
+            _check(f"Original field: {p.name}" in row.toolTip(0), "Smoke check failed: f'Original field: {p.name}' in row.toolTip(0)")
+        _check("AI lane 0 lateral" in parameter("unkB").text(0), "Smoke check failed: 'AI lane 0 lateral' in parameter('unkB').text(0)")
+        _check("Unused byte" in parameter("unk18").text(0), "Smoke check failed: 'Unused byte' in parameter('unk18').text(0)")
+        _check("Unused byte" in parameter("unk1B").text(0), "Smoke check failed: 'Unused byte' in parameter('unk1B').text(0)")
 
         def combo(name: str) -> QComboBox:
             row = parameter(name)
@@ -405,37 +414,37 @@ def checkpoint_names_smoke_test(window: MainWindow, screenshot: Path) -> None:
             deadline = time.perf_counter()+2
             while not editor.view().isVisible() and time.perf_counter() < deadline:
                 QTest.qWait(30)
-            assert editor.view().isVisible(), "Choice popup did not open"
+            _check(editor.view().isVisible(), "Choice popup did not open")
             index = editor.model().index(editor.findData(value),0)
             editor.view().scrollTo(index)
             QTest.mouseMove(editor.view().viewport(),editor.view().visualRect(index).center())
             QTest.qWait(80)
             QTest.mouseClick(editor.view().viewport(),Qt.MouseButton.LeftButton,pos=editor.view().visualRect(index).center())
             QTest.qWait(80)
-            assert session.object(key).value(name) == value
+            _check(session.object(key).value(name) == value, 'Smoke check failed: session.object(key).value(name) == value')
 
         choose("unk19",4)
-        assert "4 · Right turn" == parameter("unk19").text(1)
-        assert [i for i,(a,b) in enumerate(zip(original.raw_data,session.object(key).raw_data)) if a!=b] == [25]
+        _check("4 · Right turn" == parameter("unk19").text(1), "Smoke check failed: '4 · Right turn' == parameter('unk19').text(1)")
+        _check([i for i,(a,b) in enumerate(zip(original.raw_data,session.object(key).raw_data)) if a!=b] == [25], 'Smoke check failed: [i for i, (a, b) in enumerate(zip(original.raw_data, session.object(key).raw_data)) if a != b] == [25]')
         window.undo_action.trigger()
-        assert session.object(key).raw_data == original.raw_data
+        _check(session.object(key).raw_data == original.raw_data, 'Smoke check failed: session.object(key).raw_data == original.raw_data')
         window.redo_action.trigger()
-        assert session.object(key).value("unk19") == 4
+        _check(session.object(key).value("unk19") == 4, "Smoke check failed: session.object(key).value('unk19') == 4")
         choose("unk13",4)
-        assert parameter("unk13").text(1) == "4 · AI slowdown"
+        _check(parameter("unk13").text(1) == "4 · AI slowdown", "Smoke check failed: parameter('unk13').text(1) == '4 · AI slowdown'")
         editor = combo("unk13")
         editor.lineEdit().setText("-128")
         QTest.keyClick(editor,Qt.Key.Key_Return)
         QTest.qWait(80)
-        assert session.object(key).value("unk13") == -128
-        assert parameter("unk13").text(1) == "-128"
+        _check(session.object(key).value("unk13") == -128, "Smoke check failed: session.object(key).value('unk13') == -128")
+        _check(parameter("unk13").text(1) == "-128", "Smoke check failed: parameter('unk13').text(1) == '-128'")
         editor = combo("unk13")
         editor.lineEdit().setText("128")
         QTest.keyClick(editor,Qt.Key.Key_Return)
         QTest.qWait(80)
-        assert session.object(key).value("unk13") == -128, "Signed bounds were lost by choice editing"
+        _check(session.object(key).value("unk13") == -128, "Signed bounds were lost by choice editing")
         window.undo_action.trigger()
-        assert session.object(key).value("unk13") == 4
+        _check(session.object(key).value("unk13") == 4, "Smoke check failed: session.object(key).value('unk13') == 4")
 
         # Original named numeric fields still use the normal integer editor.
         row = parameter("unkB")
@@ -446,7 +455,7 @@ def checkpoint_names_smoke_test(window: MainWindow, screenshot: Path) -> None:
         line.setText("-43")
         QTest.keyClick(line,Qt.Key.Key_Return)
         QTest.qWait(80)
-        assert session.object(key).value("unkB") == -43
+        _check(session.object(key).value("unkB") == -43, "Smoke check failed: session.object(key).value('unkB') == -43")
 
         # Saving an active editable choice must commit even an unlisted value.
         editor = combo("unk19")
@@ -454,17 +463,17 @@ def checkpoint_names_smoke_test(window: MainWindow, screenshot: Path) -> None:
         project = screenshot.with_name(screenshot.stem+"-checkpoint.dkrproj")
         with patch("src.ui.main_window.QFileDialog.getSaveFileName",return_value=(str(project),"")):
             window.save_project_action.trigger()
-        assert session.object(key).value("unk19") == 255
-        assert session.object(key).raw_data[25] == 255
-        assert EditSession.load_project(project).object(key).raw_data == session.object(key).raw_data
+        _check(session.object(key).value("unk19") == 255, "Smoke check failed: session.object(key).value('unk19') == 255")
+        _check(session.object(key).raw_data[25] == 255, 'Smoke check failed: session.object(key).raw_data[25] == 255')
+        _check(EditSession.load_project(project).object(key).raw_data == session.object(key).raw_data, 'Smoke check failed: EditSession.load_project(project).object(key).raw_data == session.object(key).raw_data')
         document = json.loads(project.read_text())
-        assert {item["offset"] for item in document["edits"][0]["bytes"]} == {11,19,25}
+        _check({item["offset"] for item in document["edits"][0]["bytes"]} == {11,19,25}, "Smoke check failed: {item['offset'] for item in document['edits'][0]['bytes']} == {11, 19, 25}")
         edited_rom = session.build_rom()
         # Inspect this test export explicitly; normal from_bytes/from_file
         # still require the original ROM identity.
         exported = RomImage(edited_rom,"z64",parse_asset_lut(edited_rom,LUT_START,LUT_END))
         parsed = load_object_map(exported,key[0],session.database)
-        assert parsed.objects[key[1]].raw_data == session.object(key).raw_data
+        _check(parsed.objects[key[1]].raw_data == session.object(key).raw_data, 'Smoke check failed: parsed.objects[key[1]].raw_data == session.object(key).raw_data')
         window.grab().save(str(screenshot.with_name(screenshot.stem+"-checkpoint-labels.png")))
         print("CHECKPOINT NAMES PASS | all labels/tooltips, dropdown mouse selection, arbitrary/signed input, undo/redo, active-cell project save and ROM bytes")
     finally:
@@ -486,7 +495,7 @@ def editing_smoke_test(window: MainWindow, screenshot: Path) -> None:
     import struct
 
     session = window.edit_session
-    assert session is not None
+    _check(session is not None, 'Smoke check failed: session is not None')
     if session.modified_maps:
         print("EDITOR PROJECT PASS | saved overlay loaded against verified original ROM")
         return
@@ -513,7 +522,7 @@ def editing_smoke_test(window: MainWindow, screenshot: Path) -> None:
         inspector.properties.editItem(item,1)
         QTest.qWait(20)
         editor = next((field for field in inspector.properties.findChildren(QLineEdit) if field.isVisible()), None)
-        assert editor is not None, "Property editor did not open"
+        _check(editor is not None, "Property editor did not open")
         QTest.keyClick(editor,Qt.Key.Key_A,Qt.KeyboardModifier.ControlModifier)
         QTest.keyClicks(editor,text)
         QTest.keyClick(editor,Qt.Key.Key_Return)
@@ -527,21 +536,21 @@ def editing_smoke_test(window: MainWindow, screenshot: Path) -> None:
     inspector.move_step.setValue(64)
     QTest.mouseClick(inspector.nudge_buttons[1],Qt.MouseButton.LeftButton)
     QTest.qWait(80)
-    assert session.object(original.key).position[0] == original.position[0]+64
-    assert np.count_nonzero(framebuffer() != plain) > 20, "Moving sprite did not change the GPU image"
+    _check(session.object(original.key).position[0] == original.position[0]+64, 'Smoke check failed: session.object(original.key).position[0] == original.position[0] + 64')
+    _check(np.count_nonzero(framebuffer() != plain) > 20, "Moving sprite did not change the GPU image")
     np.testing.assert_array_equal(viewport.camera.position,position)
     np.testing.assert_array_equal(viewport.camera.target,target)
     inspector.move_keys.setChecked(True)
     viewport.setFocus()
     QTest.keyClick(viewport,Qt.Key.Key_PageUp)
     QTest.qWait(60)
-    assert session.object(original.key).position[1] == original.position[1]+64
+    _check(session.object(original.key).position[1] == original.position[1]+64, 'Smoke check failed: session.object(original.key).position[1] == original.position[1] + 64')
     QTest.keyClick(viewport,Qt.Key.Key_Z,Qt.KeyboardModifier.ControlModifier)
     QTest.qWait(60)
-    assert session.object(original.key).position[1] == original.position[1]
+    _check(session.object(original.key).position[1] == original.position[1], 'Smoke check failed: session.object(original.key).position[1] == original.position[1]')
     window.redo_action.trigger()
     QTest.qWait(60)
-    assert session.object(original.key).position[1] == original.position[1]+64
+    _check(session.object(original.key).position[1] == original.position[1]+64, 'Smoke check failed: session.object(original.key).position[1] == original.position[1] + 64')
     inspector.move_keys.setChecked(False)
     box = inspector.coordinates[2]
     box.setFocus()
@@ -549,18 +558,18 @@ def editing_smoke_test(window: MainWindow, screenshot: Path) -> None:
     QTest.keyClicks(box,str(original.position[2]+32))
     QTest.keyClick(box,Qt.Key.Key_Return)
     QTest.qWait(60)
-    assert session.object(original.key).position[2] == original.position[2]+32
+    _check(session.object(original.key).position[2] == original.position[2]+32, 'Smoke check failed: session.object(original.key).position[2] == original.position[2] + 32')
 
     parameters = root("Parameters")
     from src.ui.object_inspector import EDIT_ROLE
     radius = next(parameters.child(i) for i in range(parameters.childCount())
                   if parameters.child(i).data(1, EDIT_ROLE) == ('parameter', 'radius'))
     commit(radius,"80")
-    assert session.object(original.key).value("radius") == 80
+    _check(session.object(original.key).value("radius") == 80, "Smoke check failed: session.object(original.key).value('radius') == 80")
     inspector.raw_edit.setChecked(True)
     raw = root("Raw entry")
     commit(raw.child(1),"0x90")
-    assert session.object(original.key).value("radius") == 144
+    _check(session.object(original.key).value("radius") == 144, "Smoke check failed: session.object(original.key).value('radius') == 144")
     raw = root("Raw entry")
     byte = raw.child(1)
     byte.setExpanded(True)
@@ -571,15 +580,15 @@ def editing_smoke_test(window: MainWindow, screenshot: Path) -> None:
     x = inspector.properties.header().sectionViewportPosition(1)+10
     QTest.mouseClick(inspector.properties.viewport(),Qt.MouseButton.LeftButton,pos=QPoint(x,rectangle.center().y()))
     QTest.qWait(60)
-    assert session.object(original.key).value("radius") == 145, "Bit checkbox did not update raw byte"
+    _check(session.object(original.key).value("radius") == 145, "Bit checkbox did not update raw byte")
     raw = root("Raw entry")
     commit(raw.child(1),"0x100")
-    assert session.object(original.key).value("radius") == 145
-    assert "rejected" in inspector.edit_message.text()
+    _check(session.object(original.key).value("radius") == 145, "Smoke check failed: session.object(original.key).value('radius') == 145")
+    _check("rejected" in inspector.edit_message.text(), "Smoke check failed: 'rejected' in inspector.edit_message.text()")
     window._revert_selected()
-    assert session.object(original.key) == original and not session.modified_maps
+    _check(session.object(original.key) == original and not session.modified_maps, 'Smoke check failed: session.object(original.key) == original and (not session.modified_maps)')
     window.undo_action.trigger()
-    assert session.object(original.key).value("radius") == 145
+    _check(session.object(original.key).value("radius") == 145, "Smoke check failed: session.object(original.key).value('radius') == 145")
 
     # Edit an actual unknown/padding field and confirm its bit checkboxes agree.
     checkpoint_index = next(i for i,obj in enumerate(window.current_objects) if obj.definition.behavior_id == 13)
@@ -590,16 +599,16 @@ def editing_smoke_test(window: MainWindow, screenshot: Path) -> None:
     inspector.raw_edit.setChecked(True)
     raw = root("Raw entry")
     commit(raw.child(27-8),"0xA5")
-    assert session.object(checkpoint.key).raw_data[27] == 0xA5
-    assert session.object(checkpoint.key).value("unk1B") == 0xA5
+    _check(session.object(checkpoint.key).raw_data[27] == 0xA5, 'Smoke check failed: session.object(checkpoint.key).raw_data[27] == 165')
+    _check(session.object(checkpoint.key).value("unk1B") == 0xA5, "Smoke check failed: session.object(checkpoint.key).value('unk1B') == 165")
     window.toolbar.racelines.setChecked(True)
     # Editing keeps category filters, selection and the camera intact.
     inspector.category.setCurrentIndex(inspector.category.findData("Checkpoints"))
     before = viewport.camera.position.copy()
     window._nudge_selected(0,32)
     np.testing.assert_array_equal(viewport.camera.position,before)
-    assert inspector.category.currentData() == "Checkpoints"
-    assert viewport.selected_object == checkpoint_index
+    _check(inspector.category.currentData() == "Checkpoints", "Smoke check failed: inspector.category.currentData() == 'Checkpoints'")
+    _check(viewport.selected_object == checkpoint_index, 'Smoke check failed: viewport.selected_object == checkpoint_index')
     window.undo_action.trigger()
     inspector.category.setCurrentIndex(0)
 
@@ -609,57 +618,57 @@ def editing_smoke_test(window: MainWindow, screenshot: Path) -> None:
     inspector.properties.editItem(pending,1)
     QTest.qWait(30)
     editor = next((field for field in inspector.properties.findChildren(QLineEdit) if field.isVisible()), None)
-    assert editor is not None
+    _check(editor is not None, 'Smoke check failed: editor is not None')
     editor.setText("0xA7")
     with patch("src.ui.main_window.QFileDialog.getSaveFileName", return_value=(str(project),"")):
         window.save_project_action.trigger()
-    assert project.is_file() and not session.dirty
-    assert session.object(checkpoint.key).raw_data[27] == 0xA7
+    _check(project.is_file() and not session.dirty, 'Smoke check failed: project.is_file() and (not session.dirty)')
+    _check(session.object(checkpoint.key).raw_data[27] == 0xA7, 'Smoke check failed: session.object(checkpoint.key).raw_data[27] == 167')
     pending = root("Raw entry").child(27-8)
     inspector.properties.editItem(pending,1)
     QTest.qWait(30)
     editor = next((field for field in inspector.properties.findChildren(QLineEdit) if field.isVisible()), None)
-    assert editor is not None
+    _check(editor is not None, 'Smoke check failed: editor is not None')
     editor.setText("0xA5")
     exported = screenshot.with_name(screenshot.stem+"-edited.z64")
     with patch("src.ui.main_window.QFileDialog.getSaveFileName", return_value=(str(exported),"")):
         window.save_rom_action.trigger()
     data = exported.read_bytes()
-    assert n64_checksums(data) == struct.unpack_from(">2I",data,0x10)
-    assert session.object(checkpoint.key).raw_data[27] == 0xA5 and session.dirty
+    _check(n64_checksums(data) == struct.unpack_from(">2I",data,0x10), "Smoke check failed: n64_checksums(data) == struct.unpack_from('>2I', data, 16)")
+    _check(session.object(checkpoint.key).raw_data[27] == 0xA5 and session.dirty, 'Smoke check failed: session.object(checkpoint.key).raw_data[27] == 165 and session.dirty')
     with patch("src.ui.main_window.QMessageBox.warning", return_value=QMessageBox.StandardButton.Cancel):
-        assert not window.load_project(project,show_errors=False)
-    assert window.edit_session is session and session.object(checkpoint.key).raw_data[27] == 0xA5
+        _check(not window.load_project(project,show_errors=False), 'Smoke check failed: not window.load_project(project, show_errors=False)')
+    _check(window.edit_session is session and session.object(checkpoint.key).raw_data[27] == 0xA5, 'Smoke check failed: window.edit_session is session and session.object(checkpoint.key).raw_data[27] == 165')
     window.save_project_action.trigger()
-    assert not session.dirty
+    _check(not session.dirty, 'Smoke check failed: not session.dirty')
     level_id = window.selected_level.index
     window.level_panel.select_level(0 if level_id != 0 else 1)
     QTest.qWait(60)
     window.undo_action.trigger()
-    assert session.dirty
+    _check(session.dirty, 'Smoke check failed: session.dirty')
     window.redo_action.trigger()
-    assert not session.dirty
+    _check(not session.dirty, 'Smoke check failed: not session.dirty')
     window.level_panel.select_level(level_id)
     QTest.qWait(60)
-    assert next(o for o in window.current_objects if o.key == original.key) == session.object(original.key)
+    _check(next(o for o in window.current_objects if o.key == original.key) == session.object(original.key), 'Smoke check failed: next((o for o in window.current_objects if o.key == original.key)) == session.object(original.key)')
     saved = EditSession.load_project(project)
-    assert saved.object(original.key) == session.object(original.key)
-    assert saved.object(checkpoint.key).raw_data[27] == 0xA5
-    assert window.load_project(project,show_errors=False)
-    assert window.edit_session.object(checkpoint.key).raw_data[27] == 0xA5
+    _check(saved.object(original.key) == session.object(original.key), 'Smoke check failed: saved.object(original.key) == session.object(original.key)')
+    _check(saved.object(checkpoint.key).raw_data[27] == 0xA5, 'Smoke check failed: saved.object(checkpoint.key).raw_data[27] == 165')
+    _check(window.load_project(project,show_errors=False), 'Smoke check failed: window.load_project(project, show_errors=False)')
+    _check(window.edit_session.object(checkpoint.key).raw_data[27] == 0xA5, 'Smoke check failed: window.edit_session.object(checkpoint.key).raw_data[27] == 165')
     # Reopening the current project with Save must load the newly saved edits,
     # rather than the snapshot read before the unsaved-changes dialog.
     current_x = window.edit_session.object(checkpoint.key).position[0]
     window._apply_edit(checkpoint.key,"position",0,current_x+16)
     with patch("src.ui.main_window.QMessageBox.warning", return_value=QMessageBox.StandardButton.Save) as confirm:
-        assert window.load_project(project,show_errors=False)
-        assert confirm.call_count == 1
-    assert window.edit_session.object(checkpoint.key).position[0] == current_x+16
+        _check(window.load_project(project,show_errors=False), 'Smoke check failed: window.load_project(project, show_errors=False)')
+        _check(confirm.call_count == 1, 'Smoke check failed: confirm.call_count == 1')
+    _check(window.edit_session.object(checkpoint.key).position[0] == current_x+16, 'Smoke check failed: window.edit_session.object(checkpoint.key).position[0] == current_x + 16')
     window._apply_edit(checkpoint.key,"raw",27,0xA7)
     with patch("src.ui.main_window.QMessageBox.warning", return_value=QMessageBox.StandardButton.Discard) as confirm:
-        assert window.load_project(project,show_errors=False)
-        assert confirm.call_count == 1
-    assert window.edit_session.object(checkpoint.key).raw_data[27] == 0xA5
+        _check(window.load_project(project,show_errors=False), 'Smoke check failed: window.load_project(project, show_errors=False)')
+        _check(confirm.call_count == 1, 'Smoke check failed: confirm.call_count == 1')
+    _check(window.edit_session.object(checkpoint.key).raw_data[27] == 0xA5, 'Smoke check failed: window.edit_session.object(checkpoint.key).raw_data[27] == 165')
     with patch("src.ui.main_window.QFileDialog.getSaveFileName", return_value=(str(exported),"")):
         window.save_rom_action.trigger()
     inspector.object_list.setCurrentItem(inspector.object_list.topLevelItem(checkpoint_index))
@@ -671,8 +680,8 @@ def editing_smoke_test(window: MainWindow, screenshot: Path) -> None:
     from PySide6.QtWidgets import QAbstractItemView
     inspector.properties.scrollToItem(raw.child(27-8).child(7), QAbstractItemView.ScrollHint.PositionAtBottom)
     QTest.qWait(100)
-    assert not viewport.render_error
-    assert window.grab().save(str(screenshot.with_name(screenshot.stem+"-raw-editor.png")))
+    _check(not viewport.render_error, 'Smoke check failed: not viewport.render_error')
+    _check(window.grab().save(str(screenshot.with_name(screenshot.stem+"-raw-editor.png"))), "Smoke check failed: window.grab().save(str(screenshot.with_name(screenshot.stem + '-raw-editor.png')))")
     print("EDITOR PASS | XYZ, nudges, live sprite GPU changes, typed/raw/bit edits, bounds, undo/redo, filters, project reload and ROM/checksum export")
 
 
@@ -688,7 +697,7 @@ def mouse_move_smoke_test(window: MainWindow, screenshot: Path) -> None:
     viewport = window.viewport
     inspector = window.object_inspector
     session = window.edit_session
-    assert session is not None
+    _check(session is not None, 'Smoke check failed: session is not None')
     inspector.mouse_move.setChecked(True)
     inspector.category.setCurrentIndex(0)
     window.toolbar.sprites.setChecked(True)
@@ -713,7 +722,7 @@ def mouse_move_smoke_test(window: MainWindow, screenshot: Path) -> None:
         a = project_point(first,matrix,viewport.width(),viewport.height())
         b = project_point(last,matrix,viewport.width(),viewport.height())
         start,end = QPoint(round(a[0]),round(a[1])),QPoint(round(b[0]),round(b[1]))
-        assert viewport.translation_handle_at(start.x(),start.y()) == axis
+        _check(viewport.translation_handle_at(start.x(),start.y()) == axis, 'Smoke check failed: viewport.translation_handle_at(start.x(), start.y()) == axis')
         return start,end
 
     def move(start: QPoint, end: QPoint) -> None:
@@ -727,30 +736,30 @@ def mouse_move_smoke_test(window: MainWindow, screenshot: Path) -> None:
         before_cursor = session._cursor
         start,end = axis_points(axis)
         QTest.mousePress(viewport,Qt.MouseButton.LeftButton,pos=start)
-        assert session.moving_key == original.key
-        assert viewport._drag.axis == axis
+        _check(session.moving_key == original.key, 'Smoke check failed: session.moving_key == original.key')
+        _check(viewport._drag.axis == axis, 'Smoke check failed: viewport._drag.axis == axis')
         move(start,end)
         QTest.mouseRelease(viewport,Qt.MouseButton.LeftButton,pos=end)
         QTest.qWait(50)
         changed = session.object(original.key)
-        assert changed.position[axis] != original.position[axis]
-        assert all(changed.position[i] == original.position[i] for i in range(3) if i != axis)
-        assert changed.raw_data[8:] == original.raw_data[8:]
-        assert session.moving_key is None and session._cursor == before_cursor+1
-        assert viewport._sprite_mesh is sprite_mesh,"Dragging rebuilt sprite GPU resources"
+        _check(changed.position[axis] != original.position[axis], 'Smoke check failed: changed.position[axis] != original.position[axis]')
+        _check(all(changed.position[i] == original.position[i] for i in range(3) if i != axis), 'Smoke check failed: all((changed.position[i] == original.position[i] for i in range(3) if i != axis))')
+        _check(changed.raw_data[8:] == original.raw_data[8:], 'Smoke check failed: changed.raw_data[8:] == original.raw_data[8:]')
+        _check(session.moving_key is None and session._cursor == before_cursor+1, 'Smoke check failed: session.moving_key is None and session._cursor == before_cursor + 1')
+        _check(viewport._sprite_mesh is sprite_mesh, "Dragging rebuilt sprite GPU resources")
         np.testing.assert_array_equal(viewport.camera.position,camera_position)
-        assert tuple(box.value() for box in inspector.coordinates) == changed.position
+        _check(tuple(box.value() for box in inspector.coordinates) == changed.position, 'Smoke check failed: tuple((box.value() for box in inspector.coordinates)) == changed.position')
         window.undo_action.trigger()
-        assert session.object(original.key) == original and session.can_undo == prior_undo
+        _check(session.object(original.key) == original and session.can_undo == prior_undo, 'Smoke check failed: session.object(original.key) == original and session.can_undo == prior_undo')
         window.redo_action.trigger()
-        assert session.object(original.key) == changed
+        _check(session.object(original.key) == changed, 'Smoke check failed: session.object(original.key) == changed')
         window.undo_action.trigger()
 
     for cancel in ("escape","focus","disable"):
         start,end = axis_points(0)
         QTest.mousePress(viewport,Qt.MouseButton.LeftButton,pos=start)
         move(start,end)
-        assert session.object(original.key).position != original.position
+        _check(session.object(original.key).position != original.position, 'Smoke check failed: session.object(original.key).position != original.position')
         if cancel == "escape":
             QTest.keyClick(viewport,Qt.Key.Key_Escape)
         elif cancel == "focus":
@@ -759,20 +768,20 @@ def mouse_move_smoke_test(window: MainWindow, screenshot: Path) -> None:
             inspector.mouse_move.setChecked(False)
         QTest.mouseRelease(viewport,Qt.MouseButton.LeftButton,pos=end)
         QTest.qWait(40)
-        assert session.object(original.key) == original and session.moving_key is None
-        assert session.can_redo and viewport._drag is None
+        _check(session.object(original.key) == original and session.moving_key is None, 'Smoke check failed: session.object(original.key) == original and session.moving_key is None')
+        _check(session.can_redo and viewport._drag is None, 'Smoke check failed: session.can_redo and viewport._drag is None')
         inspector.mouse_move.setChecked(True)
         viewport.setFocus()
 
     start,end = axis_points(0)
     QTest.mouseClick(viewport,Qt.MouseButton.LeftButton,pos=start)
-    assert session.object(original.key) == original and session.can_redo
+    _check(session.object(original.key) == original and session.can_redo, 'Smoke check failed: session.object(original.key) == original and session.can_redo')
     # Switching levels rolls back the provisional move before loading new maps.
     level_id = window.selected_level.index
     QTest.mousePress(viewport,Qt.MouseButton.LeftButton,pos=start)
     move(start,end)
     window.level_panel.select_level(0 if level_id != 0 else 1)
-    assert session.object(original.key) == original and session.moving_key is None
+    _check(session.object(original.key) == original and session.moving_key is None, 'Smoke check failed: session.object(original.key) == original and session.moving_key is None')
     QTest.mouseRelease(viewport,Qt.MouseButton.LeftButton,pos=end)
     window.level_panel.select_level(level_id)
     inspector.object_list.setCurrentItem(inspector.object_list.topLevelItem(index))
@@ -800,19 +809,19 @@ def mouse_move_smoke_test(window: MainWindow, screenshot: Path) -> None:
                 artwork = point
                 break
         if artwork is not None:break
-    assert artwork is not None,"No visible sprite pixel available for picking"
+    _check(artwork is not None, "No visible sprite pixel available for picking")
     viewport.select_object(-1)
     inspector.category.setCurrentIndex(inspector.category.findData("Checkpoints"))
     QTest.mousePress(viewport,Qt.MouseButton.LeftButton,pos=artwork)
-    assert viewport.selected_object == index and viewport._drag.axis is None
-    assert inspector.category.currentIndex() == 0,"Picking a sprite did not reveal its filtered inspector row"
+    _check(viewport.selected_object == index and viewport._drag.axis is None, 'Smoke check failed: viewport.selected_object == index and viewport._drag.axis is None')
+    _check(inspector.category.currentIndex() == 0, "Picking a sprite did not reveal its filtered inspector row")
     end = artwork+QPoint(30,-20)
     move(artwork,end)
     QTest.mouseRelease(viewport,Qt.MouseButton.LeftButton,pos=end)
     QTest.qWait(60)
-    assert session.object(original.key).position != original.position
+    _check(session.object(original.key).position != original.position, 'Smoke check failed: session.object(original.key).position != original.position')
     window.undo_action.trigger()
-    assert session.object(original.key) == original
+    _check(session.object(original.key) == original, 'Smoke check failed: session.object(original.key) == original')
 
     # A save shortcut during the gesture commits its current preview exactly once.
     during_drag = screenshot.with_name(screenshot.stem+"-during-drag.dkrproj")
@@ -823,11 +832,11 @@ def mouse_move_smoke_test(window: MainWindow, screenshot: Path) -> None:
     move(start,end)
     saved_position = session.object(original.key).position
     QTest.keyClick(viewport,Qt.Key.Key_S,Qt.KeyboardModifier.ControlModifier)
-    assert session.moving_key is None
+    _check(session.moving_key is None, 'Smoke check failed: session.moving_key is None')
     QTest.mouseRelease(viewport,Qt.MouseButton.LeftButton,pos=end)
-    assert EditSession.load_project(during_drag).object(original.key).position == saved_position
+    _check(EditSession.load_project(during_drag).object(original.key).position == saved_position, 'Smoke check failed: EditSession.load_project(during_drag).object(original.key).position == saved_position')
     window.undo_action.trigger()
-    assert session.object(original.key) == original
+    _check(session.object(original.key) == original, 'Smoke check failed: session.object(original.key) == original')
 
     # Ctrl snapping uses the existing movement Step, relative to the starting XYZ.
     inspector.move_step.setValue(16)
@@ -837,16 +846,16 @@ def mouse_move_smoke_test(window: MainWindow, screenshot: Path) -> None:
     QTest.mouseRelease(viewport,Qt.MouseButton.LeftButton,Qt.KeyboardModifier.ControlModifier,pos=end)
     QTest.qWait(60)
     changed = session.object(original.key)
-    assert changed.position[0] != original.position[0]
-    assert (changed.position[0]-original.position[0])%16 == 0
-    assert changed.raw_data[8:] == original.raw_data[8:]
+    _check(changed.position[0] != original.position[0], 'Smoke check failed: changed.position[0] != original.position[0]')
+    _check((changed.position[0]-original.position[0])%16 == 0, 'Smoke check failed: (changed.position[0] - original.position[0]) % 16 == 0')
+    _check(changed.raw_data[8:] == original.raw_data[8:], 'Smoke check failed: changed.raw_data[8:] == original.raw_data[8:]')
     project = screenshot.with_name(screenshot.stem+"-mouse.dkrproj")
     window.save_project_to(project)
-    assert EditSession.load_project(project).object(original.key) == changed
+    _check(EditSession.load_project(project).object(original.key) == changed, 'Smoke check failed: EditSession.load_project(project).object(original.key) == changed')
     session.save_rom(screenshot.with_name(screenshot.stem+"-mouse.z64"))
     QTest.qWait(80)
-    assert not viewport.render_error
-    assert window.grab().save(str(screenshot.with_name(screenshot.stem+"-mouse.png")))
+    _check(not viewport.render_error, 'Smoke check failed: not viewport.render_error')
+    _check(window.grab().save(str(screenshot.with_name(screenshot.stem+"-mouse.png"))), "Smoke check failed: window.grab().save(str(screenshot.with_name(screenshot.stem + '-mouse.png')))")
     # Checkpoint motion also updates line buffers without replacing marker VAOs.
     scenery_index = index
     index = next(i for i,obj in enumerate(window.current_objects) if obj.definition.behavior_id == 13)
@@ -864,10 +873,10 @@ def mouse_move_smoke_test(window: MainWindow, screenshot: Path) -> None:
     move(start,end)
     QTest.mouseRelease(viewport,Qt.MouseButton.LeftButton,pos=end)
     QTest.qWait(60)
-    assert any(not np.array_equal(a,b.points) for a,b in zip(old_paths,viewport.paths))
-    assert viewport._gizmos is gizmo_mesh,"Checkpoint movement rebuilt marker GPU resources"
+    _check(any(not np.array_equal(a,b.points) for a,b in zip(old_paths,viewport.paths)), 'Smoke check failed: any((not np.array_equal(a, b.points) for a, b in zip(old_paths, viewport.paths)))')
+    _check(viewport._gizmos is gizmo_mesh, "Checkpoint movement rebuilt marker GPU resources")
     window.undo_action.trigger()
-    assert session.object(original.key) == original and not session.dirty
+    _check(session.object(original.key) == original and not session.dirty, 'Smoke check failed: session.object(original.key) == original and (not session.dirty)')
     window.toolbar.objects.setChecked(False)
     window.toolbar.racelines.setChecked(False)
     inspector.object_list.setCurrentItem(inspector.object_list.topLevelItem(scenery_index))
@@ -886,17 +895,17 @@ def camera_speed_smoke_test(window: MainWindow) -> None:
     slider = window.camera_toolbar.speed
     objects_visible = window.toolbar.objects.isChecked()
     normal_speed = viewport.camera.speed
-    assert slider.value() == 100
+    _check(slider.value() == 100, 'Smoke check failed: slider.value() == 100')
     slider.setFocus()
     QTest.keyClick(slider, Qt.Key.Key_Home)
-    assert slider.value() == 1
-    assert np.isclose(viewport.camera.speed, normal_speed * .01)
+    _check(slider.value() == 1, 'Smoke check failed: slider.value() == 1')
+    _check(np.isclose(viewport.camera.speed, normal_speed * .01), 'Smoke check failed: np.isclose(viewport.camera.speed, normal_speed * 0.01)')
     QTest.mouseClick(slider, Qt.MouseButton.LeftButton, pos=QPoint(slider.width()//2, slider.height()//2))
-    assert 1 < slider.value() < 400, "Mouse input did not change camera slider"
-    assert np.isclose(viewport.camera.speed, normal_speed * slider.value()/100)
+    _check(1 < slider.value() < 400, "Mouse input did not change camera slider")
+    _check(np.isclose(viewport.camera.speed, normal_speed * slider.value()/100), 'Smoke check failed: np.isclose(viewport.camera.speed, normal_speed * slider.value() / 100)')
     QTest.keyClick(slider, Qt.Key.Key_End)
-    assert slider.value() == 400
-    assert np.isclose(viewport.camera.speed, normal_speed * 4)
+    _check(slider.value() == 400, 'Smoke check failed: slider.value() == 400')
+    _check(np.isclose(viewport.camera.speed, normal_speed * 4), 'Smoke check failed: np.isclose(viewport.camera.speed, normal_speed * 4)')
     slider.setValue(100)
 
     def walk() -> float:
@@ -908,9 +917,9 @@ def camera_speed_smoke_test(window: MainWindow) -> None:
             QTest.keyRelease(viewport, Qt.Key.Key_W)
         elapsed = sum(call.args[3] for call in moved.call_args_list if call.args[0] == 1)
         distance = float(np.linalg.norm(viewport.camera.position-before))
-        assert elapsed > 0 and distance > 0, "W did not move the camera"
+        _check(elapsed > 0 and distance > 0, "W did not move the camera")
         velocity = distance/elapsed
-        assert np.isclose(velocity, viewport.camera.speed, rtol=.005)
+        _check(np.isclose(velocity, viewport.camera.speed, rtol=.005), 'Smoke check failed: np.isclose(velocity, viewport.camera.speed, rtol=0.005)')
         return velocity
 
     # Normalize by the actual input-loop ticks. QTest's wall-clock wait can
@@ -919,33 +928,33 @@ def camera_speed_smoke_test(window: MainWindow) -> None:
     if window.current_objects:
         item = window.object_inspector.object_list.topLevelItem(0)
         window.object_inspector.object_list.setCurrentItem(item)
-        assert viewport.camera.speed == normal_speed
+        _check(viewport.camera.speed == normal_speed, 'Smoke check failed: viewport.camera.speed == normal_speed')
         window._focus_object(0)
-        assert viewport.camera.speed == normal_speed
+        _check(viewport.camera.speed == normal_speed, 'Smoke check failed: viewport.camera.speed == normal_speed')
         focused_distance = walk()
         viewport.select_object(-1)
         window.object_inspector.select_object(-1)
-        assert viewport.camera.speed == normal_speed
+        _check(viewport.camera.speed == normal_speed, 'Smoke check failed: viewport.camera.speed == normal_speed')
         deselected_distance = walk()
-        assert np.isclose(focused_distance, before_distance, rtol=.005)
-        assert np.isclose(deselected_distance, before_distance, rtol=.005)
+        _check(np.isclose(focused_distance, before_distance, rtol=.005), 'Smoke check failed: np.isclose(focused_distance, before_distance, rtol=0.005)')
+        _check(np.isclose(deselected_distance, before_distance, rtol=.005), 'Smoke check failed: np.isclose(deselected_distance, before_distance, rtol=0.005)')
     slider.setValue(200)
     viewport.reset_camera()
     fast_distance = walk()
-    assert np.isclose(fast_distance/before_distance, 2, rtol=.005)
+    _check(np.isclose(fast_distance/before_distance, 2, rtol=.005), 'Smoke check failed: np.isclose(fast_distance / before_distance, 2, rtol=0.005)')
     if window.current_model is not None:
         window.toolbar.segments.setCurrentIndex(1)
         window.toolbar.isolate.setChecked(True)
         viewport.reset_camera()
-        assert viewport.camera.speed == normal_speed * 2
+        _check(viewport.camera.speed == normal_speed * 2, 'Smoke check failed: viewport.camera.speed == normal_speed * 2')
         window.toolbar.isolate.setChecked(False)
         window.toolbar.segments.setCurrentIndex(0)
     if window.catalog is not None:
         original_level = window.selected_level.index
         window.level_panel.select_level((original_level+1) % len(window.catalog.levels))
-        assert slider.value() == viewport.camera_speed_percent == 200
+        _check(slider.value() == viewport.camera_speed_percent == 200, 'Smoke check failed: slider.value() == viewport.camera_speed_percent == 200')
         window.level_panel.select_level(original_level)
-        assert viewport.camera.speed == normal_speed * 2
+        _check(viewport.camera.speed == normal_speed * 2, 'Smoke check failed: viewport.camera.speed == normal_speed * 2')
     slider.setValue(100)
     viewport.reset_camera()
     viewport.setFocus()
@@ -971,8 +980,8 @@ def camera_pan_smoke_test(viewport: Viewport) -> None:
     def press() -> None:
         viewport.setFocus()
         QTest.mousePress(viewport, Qt.MouseButton.MiddleButton, pos=center)
-        assert viewport._panning and QWidget.mouseGrabber() is viewport
-        assert viewport.cursor().shape() == Qt.CursorShape.ClosedHandCursor
+        _check(viewport._panning and QWidget.mouseGrabber() is viewport, 'Smoke check failed: viewport._panning and QWidget.mouseGrabber() is viewport')
+        _check(viewport.cursor().shape() == Qt.CursorShape.ClosedHandCursor, 'Smoke check failed: viewport.cursor().shape() == Qt.CursorShape.ClosedHandCursor')
 
     def move(buttons=Qt.MouseButton.MiddleButton) -> None:
         point = QPointF(center+QPoint(73, -29))
@@ -981,9 +990,9 @@ def camera_pan_smoke_test(viewport: Viewport) -> None:
             buttons, Qt.KeyboardModifier.NoModifier))
 
     def released(context: str = 'button release') -> None:
-        assert not viewport._panning and not viewport._looking and not viewport._keys, context
-        assert QWidget.mouseGrabber() is not viewport
-        assert viewport.cursor().shape() != Qt.CursorShape.ClosedHandCursor
+        _check(not viewport._panning and not viewport._looking and not viewport._keys, context)
+        _check(QWidget.mouseGrabber() is not viewport, 'Smoke check failed: QWidget.mouseGrabber() is not viewport')
+        _check(viewport.cursor().shape() != Qt.CursorShape.ClosedHandCursor, 'Smoke check failed: viewport.cursor().shape() != Qt.CursorShape.ClosedHandCursor')
 
     try:
         for view in ('Perspective', 'Top', 'Front', 'Right'):
@@ -1001,18 +1010,18 @@ def camera_pan_smoke_test(viewport: Viewport) -> None:
             np.testing.assert_allclose(np.asarray(after)-before, (73, -29), atol=.01)
             QTest.mouseClick(viewport, Qt.MouseButton.LeftButton, pos=center)
             QTest.mouseClick(viewport, Qt.MouseButton.RightButton, pos=center)
-            assert viewport._panning and not viewport._looking
-            assert selected == (viewport.selected_objects, viewport.selected_object)
+            _check(viewport._panning and not viewport._looking, 'Smoke check failed: viewport._panning and (not viewport._looking)')
+            _check(selected == (viewport.selected_objects, viewport.selected_object), 'Smoke check failed: selected == (viewport.selected_objects, viewport.selected_object)')
             # Movement/edit shortcuts cannot move the selection while panning.
             QTest.keyClick(viewport, Qt.Key.Key_W)
             QTest.keyClick(viewport, Qt.Key.Key_Up)
-            assert not viewport._keys
+            _check(not viewport._keys, 'Smoke check failed: not viewport._keys')
             QTest.mouseRelease(viewport, Qt.MouseButton.MiddleButton, pos=center)
             released()
-            assert viewport.route_pick_slot == 2, 'Panning cancelled the active route-pick tool'
-            assert settings == (viewport.camera.yaw, viewport.camera.pitch, viewport.camera.fov, viewport.camera.speed)
+            _check(viewport.route_pick_slot == 2, 'Panning cancelled the active route-pick tool')
+            _check(settings == (viewport.camera.yaw, viewport.camera.pitch, viewport.camera.fov, viewport.camera.speed), 'Smoke check failed: settings == (viewport.camera.yaw, viewport.camera.pitch, viewport.camera.fov, viewport.camera.speed)')
             QTest.qWait(25)
-            assert viewport.render_error is None
+            _check(viewport.render_error is None, 'Smoke check failed: viewport.render_error is None')
         for stop in ('escape', 'focus', 'deactivate', 'hide', 'lost-button', 'ungrab'):
             press()
             if stop == 'escape':

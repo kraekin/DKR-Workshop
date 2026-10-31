@@ -160,7 +160,7 @@ def test_malformed_v7_projects_are_rejected(session: EditSession, tmp_path: Path
     elif case == 'mixed_legacy':
         obj = session.original_map(5).objects[4]
         doc['edits'] = [{'map_id': 5, 'entry_index': 4, 'object_id': obj.object_id,
-            'base_entry_sha1': hashlib.sha1(obj.raw_data).hexdigest(), 'bytes': []}]
+            'base_entry_sha1': hashlib.sha1(obj.raw_data, usedforsecurity=False).hexdigest(), 'bytes': []}]
     elif case == 'duplicate_map': doc['structural_maps'].append(copy.deepcopy(data))
     elif case == 'note_identity': doc['research']['notes'][0]['entry_index'] = 999999
     path = tmp_path/'bad.dkrproj'

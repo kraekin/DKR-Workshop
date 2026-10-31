@@ -164,7 +164,7 @@ def test_project_export_shared_dependencies_and_untouched_assets(session: EditSe
         if index != 5: assert rebuilt.read_asset(AssetType.LEVEL_MODELS, index) == session.rom.read_asset(AssetType.LEVEL_MODELS, index)
     assert len(output) == len(session.rom.data)
     assert struct.unpack_from(">II", output, 16) == n64_checksums(output)
-    assert hashlib.sha1(session.rom.source_path.read_bytes()).hexdigest() == REV1_SHA1
+    assert hashlib.sha1(session.rom.source_path.read_bytes(), usedforsecurity=False).hexdigest() == REV1_SHA1
     # No accepted tail means growth is refused before building an output.
     protected = bytearray(session.rom.data); protected[session.rom.sections[-1].end] = 1
     loaded.rom = RomImage(bytes(protected), "z64", session.rom.sections, session.rom.source_path)

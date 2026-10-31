@@ -45,7 +45,7 @@ def test_rom_normalization_in_memory_preserves_identity(rom: RomImage, order: st
     loaded = RomImage.from_bytes(source)
     assert loaded.byte_order == order
     assert loaded.data == rom.data and source == original
-    assert hashlib.sha1(loaded.data).hexdigest() == REV1_SHA1
+    assert hashlib.sha1(loaded.data, usedforsecurity=False).hexdigest() == REV1_SHA1
 
 
 @pytest.mark.parametrize("data", [b"", b"bad!" * 16, b"\x37\x80\x40\x12" + bytes(61),

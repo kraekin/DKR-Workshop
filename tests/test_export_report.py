@@ -89,7 +89,7 @@ def test_v1_migrates_and_v2_round_trips(rom: RomImage, tmp_path: Path) -> None:
     assert loaded.project_document()["version"] == 6
     upgraded = loaded.save_project(tmp_path / "upgraded.dkrproj", 5)
     assert EditSession.load_project(upgraded).build_rom() == loaded.build_rom()
-    assert hashlib.sha1(rom.source_path.read_bytes()).hexdigest() == REV1_SHA1
+    assert hashlib.sha1(rom.source_path.read_bytes(), usedforsecurity=False).hexdigest() == REV1_SHA1
 
 
 @pytest.mark.parametrize("section", [21, 29, 34])

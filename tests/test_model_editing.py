@@ -164,7 +164,7 @@ def test_animation_signed_deltas_endpoint_and_fraction(library: ObjectLibrary) -
 def test_invalid_clip_exchange(library: ObjectLibrary, field: str, value: object) -> None:
     model, clip = library.model(240), library.clip(240, 0)
     doc = animation_document(clip.raw_data, model)
-    assert doc['mapping_sha1'] == hashlib.sha1(model.animated_indices.astype('>i2').tobytes()).hexdigest()
+    assert doc['mapping_sha1'] == hashlib.sha1(model.animated_indices.astype('>i2').tobytes(), usedforsecurity=False).hexdigest()
     doc[field] = value
     with pytest.raises(ValueError):
         import_animation(clip.raw_data, model, doc)
@@ -309,7 +309,7 @@ def test_export_only_changed_models_and_clips(rom: RomImage) -> None:
             assert output.section(section) == rom.section(section)
     assert output.read_asset(M, 240, decompress=True) == session.current_asset(M, 240)
     assert output.read_asset(A, clip.animation_id, decompress=True) == session.current_asset(A, clip.animation_id)
-    assert hashlib.sha1(rom.data).hexdigest() == '6d96743d46f8c0cd0edb0ec5600b003c89b93755'
+    assert hashlib.sha1(rom.data, usedforsecurity=False).hexdigest() == '6d96743d46f8c0cd0edb0ec5600b003c89b93755'
 
 
 def test_dependencies_and_inplace_loading(rom: RomImage, library: ObjectLibrary) -> None:

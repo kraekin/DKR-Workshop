@@ -6,6 +6,8 @@ No process access, emulator control, memory writes or capacity approval.
 """
 from __future__ import annotations
 
+# SHA-1 preserves legacy ROM/project identifiers, never authentication. See docs/HASHING_SAFETY.md.
+
 from dataclasses import dataclass, replace
 import hashlib
 import io
@@ -185,7 +187,7 @@ class _Reader:
 def _normalize_dump(data: bytes, rom: RomImage) -> tuple[bytes, str]:
     if len(data) not in RDRAM_SIZES:
         raise RuntimeAuditError('Use a raw 4 MiB or 8 MiB RDRAM dump; savestate containers are unsupported')
-    if hashlib.sha1(rom.data).hexdigest() != REV1_SHA1:
+    if hashlib.sha1(rom.data, usedforsecurity=False).hexdigest() != REV1_SHA1:
         raise RuntimeAuditError('Executable comparison requires the original USA Rev 1 ROM')
     for width, name in ((1, 'Big-endian'), (2, '16-bit byte swap'), (4, '32-bit word swap')):
         if width == 1:

@@ -342,4 +342,4 @@ def test_in_memory_rom_and_obj_exports_preserve_unrelated_assets(rom: RomImage,t
     export_obj(s.track_model(5),path)
     mesh = read_obj(path)
     assert len(mesh.faces)==2 and len(mesh.vertices)==4
-    assert hashlib.sha1(rom.source_path.read_bytes()).hexdigest()==hashlib.sha1(rom.data).hexdigest()
+    assert hashlib.sha256(rom.source_path.read_bytes()).hexdigest()==hashlib.sha256(rom.data).hexdigest()

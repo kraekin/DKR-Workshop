@@ -6,6 +6,8 @@ extract/assetTable.cpp, extract/extractor.cpp and helpers/assetsHelper.cpp.
 
 from __future__ import annotations
 
+# SHA-1 preserves legacy ROM/project identifiers, never authentication. See docs/HASHING_SAFETY.md.
+
 from dataclasses import dataclass, field
 from enum import IntEnum
 import hashlib
@@ -160,7 +162,7 @@ class RomImage:
     @classmethod
     def from_bytes(cls, data: bytes, *, source_path: Path | None = None) -> RomImage:
         normalized, order = normalize_rom(data)
-        digest = hashlib.sha1(normalized).hexdigest()
+        digest = hashlib.sha1(normalized, usedforsecurity=False).hexdigest()
         if len(normalized) != REV1_SIZE or digest != REV1_SHA1:
             raise AssetError(
                 "Unsupported or modified ROM. Expected Diddy Kong Racing USA Rev 1 "

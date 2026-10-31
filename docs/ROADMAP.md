@@ -333,14 +333,12 @@ BlueBerryBush (map5/entry4, header43/sprite108):208 B aligned block plus one
 list/interaction/header/sprite/2D shadow-texture9 reference. It has no emitters,
 attachments or lights. Also found:257 interactive pointers in a separate stack
 array and fixed400-record/800-triangle/2000-vertex shadow buffers. Their future
-peaks remain outside the observed baseline. A restricted user-run command
-previews in memory or explicitly exports exactly one clone, validates resident
-baseline assets, rebuild/reload/CRC/untouched bytes and refuses existing outputs.
-No project migration or Phase21 controls. User fresh-load/collision/restart/
-re-entry gameplay and new captures are next; see BUSH_EXPERIMENT.md.
-Verification:853 headless tests pass in92.94s, including26 one-bush regressions;
-real six-capture CLI preview and compileall pass. No review ROM was generated
-outside temporary tests and no emulator was launched. Stop for user gameplay.
+peaks remain outside the observed baseline. The standalone command used for that
+historical measurement, its dedicated tests and its separate guide were retired
+at the user's request in v0.28.0. Retain the source-derived runtime audit and
+historical evidence in RUNTIME_CAPACITY.md and OBJECT_EDITING.md. The historical
+gate passed853 headless tests, including26 tests of the now-retired command;
+current object creation uses the broader editor workflow described below.
 
 ### Phase 21 — Conservative object creation, duplication and deletion
 

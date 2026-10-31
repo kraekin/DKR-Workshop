@@ -5,6 +5,8 @@ Load into a private session and validate structural maps before header reference
 """
 from __future__ import annotations
 
+# SHA-1 preserves legacy ROM/project identifiers, never authentication. See docs/HASHING_SAFETY.md.
+
 import hashlib
 from pathlib import Path
 from typing import Any
@@ -34,7 +36,7 @@ def project_document(session: EditSession, selected_level: int = 0) -> dict[str,
                 continue
             assert original.raw_data is not None and current.raw_data is not None
             edits.append({"map_id": map_id, "entry_index": current.index, "object_id": original.object_id,
-                          "base_entry_sha1": hashlib.sha1(original.raw_data).hexdigest(),
+                          "base_entry_sha1": hashlib.sha1(original.raw_data, usedforsecurity=False).hexdigest(),
                           "bytes": [{"offset": i, "value": b} for i, (a, b) in enumerate(zip(original.raw_data, current.raw_data)) if a != b]})
     asset_edits = []
     for (section, index), raw in sorted(session._assets.items()):
@@ -46,18 +48,18 @@ def project_document(session: EditSession, selected_level: int = 0) -> dict[str,
         base = session.original_asset(section, index)
         asset_edits.append({"section": int(section), "index": index,
                             "encoding": "texture-decoded" if section in TEXTURE_SECTIONS else "rare-decoded" if section == AssetType.LEVEL_MODELS or section in MODEL_ASSETS else "raw",
-                            "base_asset_sha1": hashlib.sha1(base).hexdigest(),
+                            "base_asset_sha1": hashlib.sha1(base, usedforsecurity=False).hexdigest(),
                             "bytes": [{"offset": i, "value": b} for i, (a, b) in enumerate(zip(base, raw)) if a != b]})
     notes = [{"map_id": key[0], "entry_index": key[1], "field": key[2],
-              "base_entry_sha1": hashlib.sha1(session._note_base(key[:2])).hexdigest(),
+              "base_entry_sha1": hashlib.sha1(session._note_base(key[:2]), usedforsecurity=False).hexdigest(),
               "text": value.text, "result": value.result} for key, value in sorted(session._notes.items())]
     geometry = any(section == AssetType.LEVEL_MODELS and geometry_changed(session.track_base(index), raw)
                    for (section, index), raw in session._assets.items())
-    name_edits=[{'index':i,'encoding':'raw-names','base_asset_sha1':hashlib.sha1(session.original_asset(s,i)).hexdigest(),'data':raw.hex()}
+    name_edits=[{'index':i,'encoding':'raw-names','base_asset_sha1':hashlib.sha1(session.original_asset(s,i), usedforsecurity=False).hexdigest(),'data':raw.hex()}
         for (s,i),raw in sorted(session._assets.items()) if s==AssetType.LEVEL_NAMES]
     global_edits = any(section == AssetType.OBJECTS for section, _ in session._assets)
     model_edits = any(section in MODEL_ASSETS for section, _ in session._assets)
-    rebuilds = [{'index': i, 'base_asset_sha1': hashlib.sha1(session.original_asset(s, i)).hexdigest(),
+    rebuilds = [{'index': i, 'base_asset_sha1': hashlib.sha1(session.original_asset(s, i), usedforsecurity=False).hexdigest(),
         'encoding': 'static-model', 'data': raw.hex()} for (s, i), raw in sorted(session._assets.items())
         if s == AssetType.OBJECT_MODELS and len(raw) != len(session.original_asset(s, i))]
     document = {"format": "dkr-object-project", "version": 15 if rebuilds else 14 if model_edits else 13 if global_edits else 12 if name_edits else 11 if session._custom_textures else max((session.track_import_version(i) for i in session._track_imports),default=0) if session._track_imports else 8 if geometry else 7 if session._structures else 6,
@@ -73,7 +75,7 @@ def project_document(session: EditSession, selected_level: int = 0) -> dict[str,
         document['custom_textures'] = [raw.hex() for raw in session._custom_textures]
     if session._track_imports:
         document['track_imports'] = [{'index':index,
-            'base_asset_sha1':hashlib.sha1(session.original_asset(AssetType.LEVEL_MODELS,index)).hexdigest(),
+            'base_asset_sha1':hashlib.sha1(session.original_asset(AssetType.LEVEL_MODELS,index), usedforsecurity=False).hexdigest(),
             'baseline':baseline.hex(),'current':session.current_asset(AssetType.LEVEL_MODELS,index).hex()}
             for index,baseline in sorted(session._track_imports.items())]
     return document
@@ -121,7 +123,7 @@ def load_project(session_type: type[EditSession], path: Path, *, base_path: Path
         keys.add(key)
         obj = session.object(key)
         assert obj.raw_data is not None and obj.offset is not None
-        if type(edit.get("object_id")) is not int or edit["object_id"] != obj.object_id or edit.get("base_entry_sha1") != hashlib.sha1(obj.raw_data).hexdigest():
+        if type(edit.get("object_id")) is not int or edit["object_id"] != obj.object_id or edit.get("base_entry_sha1") != hashlib.sha1(obj.raw_data, usedforsecurity=False).hexdigest():
             raise EditError("Project object does not match its base entry")
         changes = edit.get("bytes")
         if not isinstance(changes, list) or len(changes) > obj.byte_size - 2:
@@ -156,7 +158,7 @@ def load_project(session_type: type[EditSession], path: Path, *, base_path: Path
             raise EditError("Duplicate project asset edit")
         asset_keys.add(key)
         original = session.original_asset(*key)
-        if edit.get("base_asset_sha1") != hashlib.sha1(original).hexdigest():
+        if edit.get("base_asset_sha1") != hashlib.sha1(original, usedforsecurity=False).hexdigest():
             raise EditError("Project asset does not match its base")
         changes = edit.get("bytes")
         if not isinstance(changes, list) or len(changes) > len(original):
@@ -196,7 +198,7 @@ def load_project(session_type: type[EditSession], path: Path, *, base_path: Path
         index = _integer(row.get('index'), 0, session.rom.count(AssetType.OBJECT_MODELS)-1)
         key = AssetType.OBJECT_MODELS, index
         original = session.original_asset(*key)
-        if key in asset_keys or row.get('encoding') != 'static-model' or row.get('base_asset_sha1') != hashlib.sha1(original).hexdigest():
+        if key in asset_keys or row.get('encoding') != 'static-model' or row.get('base_asset_sha1') != hashlib.sha1(original, usedforsecurity=False).hexdigest():
             raise EditError('Duplicate/mixed static model edit or incorrect base/encoding')
         value = row.get('data')
         if not isinstance(value, str) or not 0 < len(value) <= 2*MAX_MODEL_BYTES or len(value) % 2:
@@ -220,7 +222,7 @@ def load_project(session_type: type[EditSession], path: Path, *, base_path: Path
         if index in imported_ids or key in asset_keys:
             raise EditError('Duplicate or mixed imported track edits')
         imported_ids.add(index)
-        if row.get('base_asset_sha1') != hashlib.sha1(session.original_asset(*key)).hexdigest():
+        if row.get('base_asset_sha1') != hashlib.sha1(session.original_asset(*key), usedforsecurity=False).hexdigest():
             raise EditError('Imported track does not match its base ROM model')
         buffers = []
         for name in ('baseline','current'):
@@ -259,7 +261,7 @@ def load_project(session_type: type[EditSession], path: Path, *, base_path: Path
         if not isinstance(row,dict):raise EditError('Invalid course-name record')
         index=_integer(row.get('index'),0,session.rom.count(AssetType.LEVEL_NAMES)-1)
         original=session.original_asset(AssetType.LEVEL_NAMES,index)
-        if index in name_ids or row.get('encoding')!='raw-names' or row.get('base_asset_sha1')!=hashlib.sha1(original).hexdigest():
+        if index in name_ids or row.get('encoding')!='raw-names' or row.get('base_asset_sha1')!=hashlib.sha1(original, usedforsecurity=False).hexdigest():
             raise EditError('Duplicate course name or incorrect base/encoding')
         value=row.get('data')
         if not isinstance(value,str) or not 0<len(value)<=2*(len(original)+3*64) or len(value)%2:
@@ -285,7 +287,7 @@ def load_project(session_type: type[EditSession], path: Path, *, base_path: Path
             raise EditError("Invalid or duplicate note parameter")
         note_keys.add((*key, field))
         session.object(key)
-        if note.get("base_entry_sha1") != hashlib.sha1(session._note_base(key)).hexdigest():
+        if note.get("base_entry_sha1") != hashlib.sha1(session._note_base(key), usedforsecurity=False).hexdigest():
             raise EditError("Project note does not match its original entry")
         session.set_note(key, field, note.get("text"), note.get("result"))
     session._history.clear()

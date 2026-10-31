@@ -161,7 +161,7 @@ def test_model_history_project_export_and_other_sections_unchanged(rom: RomImage
         if index != 5:
             assert rebuilt.read_asset(AssetType.LEVEL_MODELS, index) == rom.read_asset(AssetType.LEVEL_MODELS, index)
     assert len(rebuilt_bytes) == len(rom.data) and struct.unpack_from(">II", rebuilt_bytes, 16) == n64_checksums(rebuilt_bytes)
-    assert hashlib.sha1(rom.source_path.read_bytes()).hexdigest() == REV1_SHA1
+    assert hashlib.sha1(rom.source_path.read_bytes(), usedforsecurity=False).hexdigest() == REV1_SHA1
     loaded.revert_track_materials(5)
     assert loaded.build_rom() == rom.data
     loaded.undo(); assert loaded.current_asset(AssetType.LEVEL_MODELS, 5) == updated

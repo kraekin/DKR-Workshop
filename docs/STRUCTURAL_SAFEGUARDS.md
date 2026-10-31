@@ -194,8 +194,8 @@ object-pool/list inventory: `objects.c:4566` collects interacting nonparticle
 objects into an unchecked257-pointer local array, and `tracks.c:259–263`
 preallocates400 shadow records,800 triangles and2000 vertices per buffer.
 Shadow geometry demand depends on intersected track surfaces. These limits
-must be considered separately from512 shared object slots. See
-[BUSH_EXPERIMENT.md](BUSH_EXPERIMENT.md) for the exact208-byte resident-bush
-delta, per-instance2D shadow-texture9 reference and restricted user-run export.
-This command exposes one Phase20 experiment; it does not expand the production
-allowlist or certify those dynamic/rendering bounds.
+must be considered separately from512 shared object slots. Historical research
+also measured a208-byte resident-bush delta and per-instance2D shadow-texture9
+reference; see [RUNTIME_CAPACITY.md](RUNTIME_CAPACITY.md). Its standalone export
+command is retired. Those measurements do not certify future dynamic/rendering
+bounds; current creation permissions are described in OBJECT_EDITING.md.

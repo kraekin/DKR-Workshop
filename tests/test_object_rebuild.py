@@ -49,14 +49,14 @@ def test_user_extruded_sign_compiles_without_modifying_inputs(rom: RomImage) -> 
     edited = Path(r'D:\RomHacking\n64\model_256edit.obj')
     if not original.exists() or not edited.exists():
         pytest.skip('User sign reproduction absent')
-    hashes = [hashlib.sha1(p.read_bytes()).digest() for p in (original, edited)]
+    hashes = [hashlib.sha256(p.read_bytes()).digest() for p in (original, edited)]
     result = compile_static(rom, 256, compact_fixture(edited.read_text()))
     raw = rom.read_asset(M, 256, decompress=True)
     model = validate_rebuild(rom, 256, raw, result.raw)
     assert result.input_vertices == 42 and model.mesh.triangle_count == 34
     assert result.inferred_faces == 34 and model.animated_count == 0
     assert model.mesh.segments[0].vertices[:, 0].max() == 4
-    assert [hashlib.sha1(p.read_bytes()).digest() for p in (original, edited)] == hashes
+    assert [hashlib.sha256(p.read_bytes()).digest() for p in (original, edited)] == hashes
 
 
 def test_all_static_stock_templates(rom: RomImage) -> None:
@@ -392,4 +392,4 @@ def test_in_memory_rom_only_selected_model_and_table_change(rom: RomImage) -> No
     for section in AssetType:
         if int(section) not in (28, 29):
             assert result.section(section) == rom.section(section)
-    assert hashlib.sha1(rom.data).hexdigest() == '6d96743d46f8c0cd0edb0ec5600b003c89b93755'
+    assert hashlib.sha1(rom.data, usedforsecurity=False).hexdigest() == '6d96743d46f8c0cd0edb0ec5600b003c89b93755'

@@ -193,7 +193,7 @@ def test_mixed_header_object_history_project_and_relocated_rom(rom: RomImage, tm
     assert loaded.dirty and loaded.level_header(5).laps == 3
     loaded.undo()
     assert not loaded.dirty and loaded.level_header(5).laps == 2
-    assert hashlib.sha1(rom.source_path.read_bytes()).hexdigest() == REV1_SHA1
+    assert hashlib.sha1(rom.source_path.read_bytes(), usedforsecurity=False).hexdigest() == REV1_SHA1
 
 
 def test_header_only_export_preserves_every_other_section(rom: RomImage) -> None:

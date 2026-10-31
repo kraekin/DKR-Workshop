@@ -159,10 +159,10 @@ stock maps are solid BlueBerryBush placements, header43/sprite108, with a
 per-instance shadow-texture reference. Other stock trees also fail the narrow
 predicate. These samples cannot approve the narrower palm-top types in another
 level, nor bypass the bush collision/shadow/reference checks. The next research
-step was to resolve those costs for an exact same-map operation. The v1.13.2
-source audit and restricted one-bush research command are documented in
-[BUSH_EXPERIMENT.md](BUSH_EXPERIMENT.md). The rebuilt-map gameplay check remains
-pending before Phase21 can enable the operation.
+step was to resolve those costs for an exact same-map operation. The historical
+v1.13.2 audit measured that operation before the broader Phase21 workflow. Its
+standalone research/export command was retired in v0.28.0. See
+[OBJECT_EDITING.md](OBJECT_EDITING.md) for current editor scope and gameplay evidence.
 
 Ignored evidence: `artifacts/phase20-race-snapshot-report.md`,
 `artifacts/phase20-raw-captures.json` and each dump's `.audit.txt`.
@@ -204,11 +204,12 @@ Before Phase21 enables an operation, its exact type/map/shared contexts need
 resource and reference validation plus representative user gameplay results.
 Positive additions still lack a justified runtime reserve. Broader creation,
 cross-level templates, graph edits and arbitrary type conversion remain disabled.
-The user-run one-bush research command checks the resident bush/header/shadow
-references and captures' available208-byte block/split, without claiming a
-future reserve or enabling production controls. Its audit also identifies the
-separate257-pointer interactive-object stack array and preallocated scenery
-shadow buffers; their future use cannot be inferred from the512-list bound.
+The historical one-bush audit checked resident bush/header/shadow references
+and the captures' available208-byte block/split without claiming a future reserve.
+It also identified the separate257-pointer interactive-object stack array and
+preallocated scenery shadow buffers; their future use cannot be inferred from
+the512-list bound. The standalone command is retired; these observations remain
+useful evidence for the current editor's resource diagnostics.
 The map-inflate check in STRUCTURAL_SAFEGUARDS.md addresses loading; it does not
 resolve those gates.
 

@@ -6,6 +6,8 @@ known serialization/capacity constraints still apply. Pure core, no Qt/GL.
 """
 from __future__ import annotations
 
+# SHA-1 preserves legacy ROM/project identifiers, never authentication. See docs/HASHING_SAFETY.md.
+
 from collections import Counter
 from dataclasses import dataclass, replace
 import hashlib
@@ -221,9 +223,9 @@ def state_document(session: EditSession, state: MapState, next_id: int) -> dict[
         base = template.raw(session)
         rows.append({'id': identity.value, 'template': {'object_id': template.object_id,
             'map_id': template.map_id, 'entry_index': template.entry_index,
-            'sha1': hashlib.sha1(base).hexdigest()}, 'initial': _patches(base, identity.initial),
+            'sha1': hashlib.sha1(base, usedforsecurity=False).hexdigest()}, 'initial': _patches(base, identity.initial),
             'bytes': _patches(identity.initial, obj.raw_data)})
-    return {'map_id': state.map_id, 'base_map_sha1': hashlib.sha1(raw_map(session.original_map(state.map_id))).hexdigest(),
+    return {'map_id': state.map_id, 'base_map_sha1': hashlib.sha1(raw_map(session.original_map(state.map_id)), usedforsecurity=False).hexdigest(),
             'next_id': next_id, 'entries': rows}
 
 
@@ -232,7 +234,7 @@ def state_from_document(session: EditSession, doc: object) -> tuple[MapState, in
         raise StructureError('Invalid structural map document')
     map_id = doc['map_id']
     original = session.original_map(map_id)
-    if doc.get('base_map_sha1') != hashlib.sha1(raw_map(original)).hexdigest():
+    if doc.get('base_map_sha1') != hashlib.sha1(raw_map(original), usedforsecurity=False).hexdigest():
         raise StructureError('Structural map does not match its base ROM')
     rows, counter = doc.get('entries'), doc.get('next_id')
     if not isinstance(rows, list) or len(rows) > OBJECT_SLOTS or type(counter) is not int or not len(original.objects) <= counter <= MAX_IDENTITY:
@@ -247,7 +249,7 @@ def state_from_document(session: EditSession, doc: object) -> tuple[MapState, in
             raise StructureError('Invalid structural template ID/source')
         template = ObjectTemplate(object_id, source_map, source_index)
         raw = template.raw(session)
-        if t.get('sha1') != hashlib.sha1(raw).hexdigest():
+        if t.get('sha1') != hashlib.sha1(raw, usedforsecurity=False).hexdigest():
             raise StructureError('Structural template hash mismatch')
         identity = row.get('id')
         if type(identity) is not int or not 0 <= identity < counter:
