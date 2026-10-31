@@ -13,7 +13,7 @@ import numpy as np
 from PIL import Image, PngImagePlugin
 
 from src.core.compression import decompress_rare
-from src.core.rom import AssetType, RomImage, DecompAssets, read_json
+from src.core.rom import AssetType, RomImage, DecompAssets
 from src.core.textures import (Texture, TextureHeader, TextureFormat, SpriteAsset,
     TextureError, Pixels, BITS, image_size, decode_pixels, deinterlace, load_sprite, load_texture)
 
@@ -260,7 +260,7 @@ def png_flip_default(source: RomImage | DecompAssets, section: AssetType, index:
     if isinstance(source, DecompAssets):
         path = source.entry_path(section, index)
         if path.suffix.casefold() == ".json":
-            metadata = read_json(path)
+            metadata = source.read_json(path)
             if "raw" not in metadata:
                 value = metadata.get("flipped-image", False)
                 if type(value) is not bool:

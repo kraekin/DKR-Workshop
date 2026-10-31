@@ -14,7 +14,7 @@ from typing import Any
 import numpy as np
 from numpy.typing import NDArray
 
-from src.core.rom import AssetError, AssetType, DecompAssets, RomImage, read_json
+from src.core.rom import AssetError, AssetType, DecompAssets, RomImage
 
 BEHAVIOR_NAMES: tuple[str, ...] = (
     'BHV_NONE',
@@ -347,7 +347,7 @@ def load_object_database(source: RomImage | DecompAssets) -> ObjectDatabase:
     definitions: list[ObjectDefinition] = []
     for index in range(source.count(AssetType.OBJECTS)):
         path = source.entry_path(AssetType.OBJECTS, index)
-        document = read_json(path) if path.suffix.casefold() == '.json' else {}
+        document = source.read_json(path) if path.suffix.casefold() == '.json' else {}
         if document and 'raw' not in document:
             if document.get('type') != 'ObjectHeader':
                 raise ObjectError('Expected ObjectHeader JSON')
@@ -371,7 +371,7 @@ def load_object_database(source: RomImage | DecompAssets) -> ObjectDatabase:
         else:
             definitions.append(ObjectDefinition.from_bytes(source.read_asset(AssetType.OBJECTS, index), index))
     path = source.entry_path(AssetType.LEVEL_OBJECT_TRANSLATION_TABLE, 0)
-    document = read_json(path) if path.suffix.casefold() == '.json' else {}
+    document = source.read_json(path) if path.suffix.casefold() == '.json' else {}
     if document and 'raw' not in document:
         if document.get('type') != 'LevelObjectTranslationTable':
             raise ObjectError('Expected LevelObjectTranslationTable JSON')
@@ -488,7 +488,7 @@ def _gltf_map(source: DecompAssets, map_id: int, database: ObjectDatabase, docum
     filename = document.get('objects')
     if filename is None:
         return ObjectMap(map_id, (), 0, b'', b'')
-    gltf = read_json(source._path(path.parent, filename))
+    gltf = source.read_json(source._path(path.parent, filename))
     nodes = gltf.get('nodes')
     if not isinstance(nodes, list):
         raise ObjectError('Object-map glTF is missing nodes')
@@ -558,7 +558,7 @@ def load_object_map(source: RomImage | DecompAssets, map_id: int, database: Obje
     if isinstance(source, DecompAssets):
         path = source.entry_path(AssetType.LEVEL_OBJECT_MAPS, map_id)
         if path.suffix.casefold() == '.json':
-            document = read_json(path)
+            document = source.read_json(path)
             if 'raw' not in document:
                 return _gltf_map(source, map_id, database, document, path)
     return ObjectMap.from_bytes(source.read_asset(AssetType.LEVEL_OBJECT_MAPS, map_id, decompress=True), database, map_id=map_id)

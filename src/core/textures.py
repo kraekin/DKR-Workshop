@@ -19,7 +19,7 @@ from PIL import Image
 from src.core.compression import decompress_rare
 from src.core.level_model import LevelModel
 from src.core.objects import LevelObject
-from src.core.rom import AssetError, AssetType, DecompAssets, RomImage, read_json
+from src.core.rom import AssetError, AssetType, DecompAssets, RomImage
 
 
 class TextureError(AssetError):
@@ -222,7 +222,7 @@ def load_texture(source: RomImage | DecompAssets, texture_id: int,
     path = source.entry_path(asset_type, texture_id)
     if path.suffix.casefold() != ".json":
         return Texture.from_bytes(path.read_bytes(), texture_id=texture_id)
-    metadata = read_json(path)
+    metadata = source.read_json(path)
     if "raw" in metadata:
         return Texture.from_bytes(source._path(path.parent, metadata["raw"]).read_bytes(), texture_id=texture_id)
     try:
@@ -334,7 +334,7 @@ class SpriteAsset:
 def load_sprite(source: RomImage | DecompAssets, sprite_id: int) -> SpriteAsset:
     if isinstance(source,DecompAssets):
         path=source.entry_path(AssetType.SPRITES,sprite_id)
-        document=read_json(path) if path.suffix.casefold()=='.json' else {}
+        document=source.read_json(path) if path.suffix.casefold()=='.json' else {}
         if document and 'raw' not in document:
             counts=document.get('frame-tex-count')
             if document.get('type')!='Sprite' or not isinstance(counts,list) or not 1<=len(counts)<=32767:

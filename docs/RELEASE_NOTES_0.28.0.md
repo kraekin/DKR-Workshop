@@ -23,6 +23,9 @@
   optimization and report explicit failures. Retired the standalone bush research
   experiment. Reviewed hashing uses and marked legacy SHA-1 fingerprints as
   non-security uses while preserving existing project compatibility.
+- **Extracted JSON paths:** validate resolved manifest and metadata paths against
+  the selected asset root, including linked paths. Explicit ROM/project file
+  selection still works across directories.
 
 Existing projects remain compatible. Minimap generation replaces an existing
 sprite's first-frame pixels; batch images retain existing dimensions, formats,

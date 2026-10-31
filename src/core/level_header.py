@@ -11,7 +11,7 @@ import math
 import struct
 from typing import Any
 
-from src.core.rom import AssetError, AssetType, DecompAssets, JsonObject, RomImage, read_json
+from src.core.rom import AssetError, AssetType, DecompAssets, JsonObject, RomImage
 
 RGB = tuple[int, int, int]
 AILevels = tuple[int, int, int, int, int]
@@ -284,7 +284,7 @@ def load_level_catalog(source: RomImage | DecompAssets) -> LevelCatalog:
             build_id = source.order(AssetType.LEVEL_HEADERS)[index]
             path = source.entry_path(AssetType.LEVEL_HEADERS, index)
             if path.suffix.casefold() == ".json":
-                document = read_json(path)
+                document = source.read_json(path)
         try:
             if document is not None and document.get("type") == "LevelHeader" and "raw" not in document:
                 header = LevelHeader.from_json(document, source)
@@ -296,7 +296,7 @@ def load_level_catalog(source: RomImage | DecompAssets) -> LevelCatalog:
                 header = LevelHeader.from_bytes(source.read_asset(AssetType.LEVEL_HEADERS, index))
                 if isinstance(source, DecompAssets):
                     name_path = source.entry_path(AssetType.LEVEL_NAMES, index)
-                    name_document = read_json(name_path) if name_path.suffix.casefold() == ".json" else None
+                    name_document = source.read_json(name_path) if name_path.suffix.casefold() == ".json" else None
                     if name_document is not None and name_document.get("type") == "LevelName":
                         names = LevelNames.from_json(name_document.get("languages", {}))
                     else:

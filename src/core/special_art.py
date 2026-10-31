@@ -14,7 +14,7 @@ from numpy.typing import NDArray
 
 from src.core.level_model import LevelModel, _readonly
 from src.core.objects import LevelObject, ObjectDefinition
-from src.core.rom import AssetType, DecompAssets, RomImage, read_json
+from src.core.rom import AssetType, DecompAssets, RomImage
 from src.core.textures import Texture, TextureFrame, load_texture
 
 FloatArray = NDArray[np.float32]
@@ -133,7 +133,7 @@ def shadow_spec(source: RomImage | DecompAssets, definition: ObjectDefinition) -
         scale = struct.unpack_from('>f', raw, 4)[0]
         bottom, top = struct.unpack_from('>2h', raw, 0x42)
     elif isinstance(source, DecompAssets):
-        document = read_json(source.entry_path(AssetType.OBJECTS, definition.header_id))
+        document = source.read_json(source.entry_path(AssetType.OBJECTS, definition.header_id))
         group = document.get('shadow-group', 0)
         scale = document.get('shadow-scale', 0.)
         unknown = document.get('unknown', {})

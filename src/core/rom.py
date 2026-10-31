@@ -210,7 +210,24 @@ class RomImage:
         return decode_asset(data, compressed=decompress)
 
 
-def read_json(path: Path) -> JsonObject:
+def read_json(path: Path, *, root: Path | None = None) -> JsonObject:
+    """Read a selected JSON file, or constrain an asset reference to its root.
+
+    Top-level project paths are explicit user file selections and may live in
+    any directory. Paths from extracted manifests must supply their asset root.
+    Resolving a path alone is not a containment check.
+    """
+    try:
+        path = path.resolve(strict=True)
+        directory = root.resolve(strict=True) if root is not None else None
+    except RuntimeError as error:
+        # Python 3.11/3.12 report symlink loops as RuntimeError, not OSError.
+        raise AssetError("Cannot resolve JSON file path") from error
+    if directory is not None:
+        if not directory.is_dir() or not path.is_relative_to(directory):
+            raise AssetError("JSON filename points outside the selected asset directory")
+    if not path.is_file():
+        raise AssetError("Expected a regular JSON file")
     try:
         value = json.loads(path.read_text(encoding="utf-8-sig"))
     except (UnicodeError, json.JSONDecodeError) as error:
@@ -228,6 +245,9 @@ class DecompAssets:
     manifest: JsonObject = field(repr=False)
     _sections: dict[AssetType, JsonObject] = field(default_factory=dict, repr=False)
 
+    def __post_init__(self) -> None:
+        self.root = self.root.resolve()
+
     @classmethod
     def from_directory(cls, directory: Path | str) -> DecompAssets:
         chosen = Path(directory).resolve()
@@ -236,7 +256,7 @@ class DecompAssets:
         for root in candidates:
             path = root / "assets.meta.json"
             if path.is_file():
-                manifest = read_json(path)
+                manifest = read_json(path, root=root)
                 if manifest.get("@dkr-version") != "us.v80":
                     raise AssetError("Extracted assets must be tagged @dkr-version = us.v80 (USA Rev 1)")
                 return cls(root, manifest)
@@ -248,6 +268,10 @@ class DecompAssets:
     @property
     def description(self) -> str:
         return f"{self.root} · extracted us.v80 assets"
+
+    def read_json(self, path: Path) -> JsonObject:
+        """All extracted JSON, including glTF metadata, stays in this root."""
+        return read_json(path, root=self.root)
 
     def _path(self, base: Path, relative: str) -> Path:
         if not isinstance(relative, str) or not relative:
@@ -264,7 +288,7 @@ class DecompAssets:
                 path = self._path(self.root, info["filename"])
             except (KeyError, TypeError) as error:
                 raise AssetError(f"Missing section manifest for ASSET_{asset_type.name}") from error
-            self._sections[asset_type] = read_json(path)
+            self._sections[asset_type] = self.read_json(path)
         return self._sections[asset_type]
 
     def order(self, asset_type: AssetType) -> tuple[str, ...]:
@@ -313,7 +337,7 @@ class DecompAssets:
     def read_asset(self, asset_type: AssetType, index: int, *, decompress: bool = False) -> bytes:
         path = self.entry_path(asset_type, index)
         if path.suffix.casefold() == ".json":
-            metadata = read_json(path)
+            metadata = self.read_json(path)
             if "raw" not in metadata:
                 raise AssetError(f"{path.name} is structured JSON, not a raw binary asset")
             path = self._path(path.parent, metadata["raw"])

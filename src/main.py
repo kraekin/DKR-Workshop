@@ -74,6 +74,8 @@ def main() -> int:
     parser.add_argument("--smoke-test", action="store_true", help="Run real-window GL/input checks and exit")
     parser.add_argument("--screenshot", type=Path, default=Path("artifacts/viewport-check.png"))
     source = parser.add_mutually_exclusive_group()
+    # Explicit local file selections, like the Open dialogs; not a cwd sandbox.
+    # References inside extracted manifests are confined by DecompAssets.
     source.add_argument("--rom", type=Path, help="Open a USA Rev 1 ROM at startup")
     source.add_argument("--project", type=Path, help="Open a saved Workshop project (.dkrproj)")
     parser.add_argument("--level", type=int, help="Select a level ID from the loaded catalog")
