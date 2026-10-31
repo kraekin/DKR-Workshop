@@ -1,25 +1,22 @@
-# DKR Workshop local Git setup — complete (2026-10-30)
+# Creator workflow — visual catalog verified (2026-10-30)
 
-Existing GitHub history fetched from kraekin/DKR-Workshop; local main tracks
-origin/main at 5c487f3. A local development checkpoint records this workspace's
-docs/tests/configuration and two additional research helpers. Existing tracked
-application source matches the uploaded release; no application code was edited.
-Missing root launcher/requirements restored exactly from the existing history.
-ROMs/projects/research/builds/artifacts/personal OBJ/MTL/test tracks stay ignored.
+Visual Add Objects catalog implemented: all 304 types retain their templates,
+map/XYZ/structural writer semantics; searchable/category-filtered thumbnail cards,
+current-project artwork, selected 3D/sprite/texture previews and safe cancellation.
+No favorites/presets/groups. Docs: docs/VISUAL_OBJECT_CATALOG.md.
+Local decomp confirms existing 0x78 ObjectHeader, artwork pointer0x10/kind0x53/
+signed count0x55; existing 0x58 ObjectModel and 12-byte sprite parsers reused.
+No new ROM field, parser layout or project version introduced.
 
-Local README is preserved; it differs from the release README, including missing
-GitHub screenshots. Review that diff before a later user push. Instructions:
-docs/GIT_WORKFLOW.md. Do not push or publish remote changes without explicit later
-authorization; the user owns publication. Existing files/editors stay preserved.
+Gate: 1,825 full tests passed in369.39s, final15 catalog/grid/label checks and
+six catalog/drag-cancel regressions pass. Isolated native catalog screenshots/
+filtering/preview pass on RTX4060 GL3.3. Full native smoke passes at63.0 FPS/
+4x MSAA after correcting stale smoke labels/axes/editor lookup, and a preexisting
+level-switch ordering bug: cancel drag before committing pending editor cells.
+Original ROM/user editors preserved; no emulator/gameplay run. Test exports are
+owned temporary fixtures, not user review ROMs.
 
-Verification: ignore rules and source diff checked; no common credential-pattern
-matches in selected text files. Prior audit: 1,820 tests pass / 128 Python ASTs;
-no test rerun needed for this Git/documentation setup. Staged-content review
-excludes proprietary/personal assets; two preexisting whitespace findings in
-AGENTS.md and tests/test_render_batches.py are retained in the baseline. History,
-upstream and clean-status checks accompany the local checkpoint.
-
-Next selected scope: visually improve the existing Add Objects catalog, then
-complete object artwork export. Favorites/presets/reusable groups are excluded;
-autosave/recovery remains deferred. No feature implementation started here.
-Audit and prior separate DKR-R handoff: docs/FEATURE_REPORT_2026-10-30.md.
+Next authorized milestone: complete object mesh artwork export (OBJ/MTL/PNG),
+preserving existing vertex identities, compact units and batch_N import names.
+Finish that milestone with focused/full/native checks before user review.
+All commits stay local; no push/publication. Autosave remains deferred.

@@ -428,9 +428,9 @@ class MainWindow(QMainWindow):
 
     @Slot(int)
     def _select_level(self, index: int) -> None:
+        self.viewport.finish_object_drag(cancel=True)
         self._commit_editor()
         self.object_inspector.materials.cancel_preview()
-        self.viewport.finish_object_drag(cancel=True)
         self.viewport.release_cinematic_camera()
         if self.catalog is None or not 0 <= index < len(self.catalog.levels):
             return

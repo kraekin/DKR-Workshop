@@ -308,3 +308,21 @@ def test_interleaved_object_poses_reuse_expanded_lighting_buffers(monkeypatch):
         mesh._draw_instance(instance, np.eye(4), np.zeros(3), 0, -1, -1,
                             textured=True, wireframe=False, culling=True, transparent=False, pose=pose)
     assert len(calls) == 2
+
+
+def test_level_change_cancels_active_drag_without_creating_history(window):
+    from types import SimpleNamespace
+    window.level_panel.select_level(5)
+    index = next(i for i, obj in enumerate(window.current_objects) if obj.definition.behavior_id == 2)
+    window._select_group((index,), index)
+    original = window.current_objects[index]
+    session = window.edit_session
+    cursor = session._cursor
+    window.viewport._drag = SimpleNamespace(axis=0)
+    window.viewport.object_drag_started.emit(index)
+    window.viewport.object_drag_preview.emit((original.position[0]+64, *original.position[1:]))
+    assert session.object(original.key).position != original.position
+    window.level_panel.select_level(0)
+    assert session.object(original.key) == original
+    assert session.moving_key is None and session._cursor == cursor
+    assert window.viewport._drag is None

@@ -126,12 +126,21 @@ def smoke_test(app: QApplication, window: MainWindow, screenshot: Path) -> int:
         assert not viewport._keys, "Focus loss did not clear keys"
         viewport.setFocus()
         viewport.reset_camera()
+        # The adaptive grid is automatic/off in Perspective. Axes now live in
+        # a child orientation widget rather than world-origin GL lines.
+        window.toolbar.grid.setChecked(True)
+        viewport.set_grid_visible(True)
+        window.toolbar.axes.setChecked(True)
         QTest.qWait(100)
         frame = viewport.grabFramebuffer().convertToFormat(QImage.Format.Format_RGBA8888)
         assert not frame.isNull(), "Framebuffer is empty"
         pixels = np.frombuffer(frame.constBits(), dtype=np.uint8).reshape(frame.height(), frame.bytesPerLine())
         rgb = pixels[:, :frame.width() * 4].reshape(frame.height(), frame.width(), 4)[:, :, :3]
-        assert np.unique(rgb.reshape(-1, 3), axis=0).shape[0] > 20, "Reference lines were not drawn"
+        assert np.unique(rgb.reshape(-1, 3), axis=0).shape[0] > 4, "Working grid was not drawn"
+        assert viewport.orientation.isVisible(), "Corner axes are hidden"
+        frame = viewport.orientation.grab().toImage().convertToFormat(QImage.Format.Format_RGBA8888)
+        pixels = np.frombuffer(frame.constBits(), dtype=np.uint8).reshape(frame.height(), frame.bytesPerLine())
+        rgb = pixels[:, :frame.width()*4].reshape(frame.height(), frame.width(), 4)[:, :, :3]
         # MSAA can mix every pixel of a one-pixel line with the background.
         # Test color dominance, independent of its subpixel coverage/brightness.
         signed_rgb = rgb.astype(np.int16)
@@ -353,7 +362,8 @@ def checkpoint_names_smoke_test(window: MainWindow, screenshot: Path) -> None:
     from src.core.editing import EditSession
     from src.core.objects import load_object_map
     from src.core.rom import RomImage, LUT_START, LUT_END, parse_asset_lut
-    from src.ui.object_inspector import EDIT_ROLE, CHECKPOINT_PARAMETERS
+    from src.ui.object_inspector import EDIT_ROLE
+    from src.core.parameter_labels import CHECKPOINT_PARAMETERS
 
     prior = window.edit_session
     assert prior is not None
@@ -378,8 +388,8 @@ def checkpoint_names_smoke_test(window: MainWindow, screenshot: Path) -> None:
             assert CHECKPOINT_PARAMETERS[p.name].label in row.text(0)
             assert f"Original field: {p.name}" in row.toolTip(0)
         assert "AI lane 0 lateral" in parameter("unkB").text(0)
-        assert "Apparently unused" in parameter("unk18").text(0)
-        assert "Apparently unused" in parameter("unk1B").text(0)
+        assert "Unused byte" in parameter("unk18").text(0)
+        assert "Unused byte" in parameter("unk1B").text(0)
 
         def combo(name: str) -> QComboBox:
             row = parameter(name)
@@ -542,7 +552,9 @@ def editing_smoke_test(window: MainWindow, screenshot: Path) -> None:
     assert session.object(original.key).position[2] == original.position[2]+32
 
     parameters = root("Parameters")
-    radius = next(parameters.child(i) for i in range(parameters.childCount()) if parameters.child(i).text(0).endswith(" radius"))
+    from src.ui.object_inspector import EDIT_ROLE
+    radius = next(parameters.child(i) for i in range(parameters.childCount())
+                  if parameters.child(i).data(1, EDIT_ROLE) == ('parameter', 'radius'))
     commit(radius,"80")
     assert session.object(original.key).value("radius") == 80
     inspector.raw_edit.setChecked(True)
@@ -595,7 +607,8 @@ def editing_smoke_test(window: MainWindow, screenshot: Path) -> None:
     # Save shortcuts must include text still being edited, before Enter/focus-out.
     pending = root("Raw entry").child(27-8)
     inspector.properties.editItem(pending,1)
-    editor = inspector.properties.findChild(QLineEdit)
+    QTest.qWait(30)
+    editor = next((field for field in inspector.properties.findChildren(QLineEdit) if field.isVisible()), None)
     assert editor is not None
     editor.setText("0xA7")
     with patch("src.ui.main_window.QFileDialog.getSaveFileName", return_value=(str(project),"")):
@@ -604,7 +617,8 @@ def editing_smoke_test(window: MainWindow, screenshot: Path) -> None:
     assert session.object(checkpoint.key).raw_data[27] == 0xA7
     pending = root("Raw entry").child(27-8)
     inspector.properties.editItem(pending,1)
-    editor = inspector.properties.findChild(QLineEdit)
+    QTest.qWait(30)
+    editor = next((field for field in inspector.properties.findChildren(QLineEdit) if field.isVisible()), None)
     assert editor is not None
     editor.setText("0xA5")
     exported = screenshot.with_name(screenshot.stem+"-edited.z64")

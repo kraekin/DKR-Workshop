@@ -102,6 +102,11 @@ The right inspector has **Level**, **Objects**, **Geometry**, **Settings** and
 
 ### Objects and parameters
 
+**Add…** opens a visual catalog with ROM-derived thumbnail cards, name/ID/category
+search, category filters and a larger sprite or interactive 3D artwork preview.
+Choose a target map, position and template, then Add. See
+[Visual object catalog](docs/VISUAL_OBJECT_CATALOG.md).
+
 Click artwork, a marker or an object row to select it. Use Ctrl-click for a group.
 Drag the RGB arrows or center handle to move it, or use the inspector's XYZ and
 Step controls. A drag is one undo step; Escape or focus loss cancels it. Ctrl-drag
