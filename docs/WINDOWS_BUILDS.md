@@ -71,6 +71,11 @@ packages and artifact SHA-256 hashes. CI installs this file directly. The
 bootstrap uv version is pinned too, and isolated source-build dependencies are
 constrained by `.github/requirements-build.txt`.
 
+The hosted runner's `setup-python` interpreter is not a virtual environment, so
+CI explicitly passes `--system` to uv. This targets the disposable runner's
+Python installation. The local commands above assume an activated virtual
+environment and do not need that flag.
+
 For runtime-only source installation, `requirements.txt` contains matching exact
 runtime versions; use `pip install -r requirements.txt`. Artifact hashes stay in
 `pylock.toml`, which CI consumes directly.
