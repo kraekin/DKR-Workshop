@@ -16,6 +16,9 @@ On 2026-10-31 the user authorized merging Course Builder and Route Finishing:
 one three-tab window for checkpoints/branches, AI lanes and start grid, shared
 preview/draft history/Apply, while keeping inspector quick edits. Remove the
 separate finishing window/entry points. This is a local v0.28.0 refinement.
+On 2026-10-31 the user explicitly authorized pushing all completed local
+v0.28.0 changes, including the unified builder and follow-up input/security
+cleanup, to GitHub. This does not authorize publishing future unrequested work.
 Preserve local ROMs, research/build directories, personal test assets and running
 editors. Keep proprietary assets excluded from commits.
 

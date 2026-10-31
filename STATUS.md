@@ -1,27 +1,23 @@
-# CLI JSON path finding v0.28.0 — complete (2026-10-31)
+# v0.28.0 GitHub handoff — verified (2026-10-31)
 
-Traced main.py --project through project_io to rom.read_json. Explicit CLI/UI
-file selections may intentionally live anywhere; no cwd sandbox was promised.
---rom reads binary ROM data, not JSON. Do not reject legitimate cross-directory
-project/base-ROM locations or claim this CLI trace alone proves traversal.
+User explicitly authorized pushing all completed local changes to
+https://github.com/kraekin/DKR-Workshop, target main. Fresh remote preflight:
+origin/main is b02545e, an ancestor of the six completed feature/fix commits.
+No conflicting remote changes or uncommitted application files were present.
 
-Added resolved-root containment to read_json for extracted references and routed
-all extracted JSON readers through DecompAssets.read_json. Initial assets.meta.json
-now receives the check too. Canonical targets must remain in the selected root;
-reject outside absolute/parent/sibling/link targets before reading. Pin canonical
-roots even on direct DecompAssets construction. Selected JSON must be a regular
-file; resolution loops become normal AssetError load failures. No binary/project
-format changes. README links docs/PATH_SAFETY.md with exact boundaries, limitations
-and Sonar review rationale; release notes updated. No blanket suppressions.
+Handoff includes generated minimaps, batch image tools, BPS/xdelta patch export,
+unified three-tab Course Builder, focus-aware wheel editing, explicit optimized
+smoke checks, retired bush research tool, hashing review and constrained extracted
+JSON reads. Version0.28.0. Existing projects/ROM protections remain compatible.
 
-Verified98 path/ROM/project tests pass in7.04s and434 affected-loader regressions
-pass in29.03s (zero failures/errors/skips). Tests include an actual Windows junction
-and a simulated canonical file-link escape for the initial manifest. Native CLI
-startup opens a temporary project and original ROM in different directories at
-level5, RTX4060 GL3.3/4xMSAA; original ROM unchanged and no ROM export.146 Python
-files parse; diff checks pass. Ignored evidence: artifacts/json-*-tests.xml,
-json-loader-regressions.xml and verify_json_cli.py. Owned fixtures cleaned.
+Verification:1,906 full-suite tests passed at smoke/hash checkpoint e5c6175.
+Final JSON hardening ceb261d passed98 path/ROM/project and434 loader checks,
+plus native cross-directory CLI project startup; original ROM unchanged.
+Optimized native smoke and Course Builder input checks passed previously.
+Review guides: docs/HASHING_SAFETY.md, docs/PATH_SAFETY.md. Release notes:
+docs/RELEASE_NOTES_0.28.0.md. User files, captures, builds and editors preserved.
 
-Next: user re-scans/reviews Sonar using the path-safety notes. Work remains local;
-no push, release, rebuild, emulator or persistent gameplay/review ROM. Preserve
-user files and existing editor processes. Prior checkpoint e5c6175 retained.
+Next: user reviews GitHub main and refreshed Sonar analysis after this handoff.
+Push main normally and verify matching remote/local tips. No version tag or
+manual build/release requested; no emulator or persistent gameplay ROM output.
+Future changes remain local unless separately authorized.
