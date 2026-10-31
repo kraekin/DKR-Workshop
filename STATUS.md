@@ -11,6 +11,8 @@ Verified8 release/lock consistency checks pass in0.34s; diff checks pass. Ignore
 JUnit: artifacts/simple-requirements-tests.xml. Owned pytest fixtures cleaned;
 user files, ROMs/builds and running editors preserved. Version remains0.28.0.
 
-Next: user reviews the short requirements file and pushes when ready. This
-refinement stays local; no push, tag, build, emulator or ROM generation requested.
-Previous published handoff60746f0 remains intact.
+GitHub handoff explicitly authorized by the user on2026-10-31: push the completed
+requirements cleanup e495ffe to origin/main. Fresh remote preflight confirms
+main60746f0 is an ancestor, with no conflicting remote or application edits.
+Next: user reviews GitHub main after the handoff. No tag, manual build, release,
+emulator or ROM generation requested. Future work remains local unless authorized.
