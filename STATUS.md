@@ -12,8 +12,9 @@ or removed.8 release/lock checks pass in0.13s; diff checks pass. Ignored JUnit:
 artifacts/ci-uv-system-tests.xml. Existing environments, ROMs, builds and editors
 preserved; owned pytest fixtures cleaned.
 
-Publish this related CI repair under the user's existing hosted-build/fix
-and GitHub authorization, then start a fresh workflow from updated main. Retrying
-the old run would retain its old workflow revision. Next: inspect the fresh run's
-install step; user downloads/tests when compilation finishes. No need to wait
-through the full compile. No tag/release, local EXE build or gameplay ROM output.
+Published fix dd815ce under existing CI-fix/GitHub authorization and dispatched
+one fresh main build: https://github.com/kraekin/DKR-Workshop/actions/runs/41253183235
+Hosted locked dependency installation and import/ROM-free tests now PASS;
+Nuitka compilation is running. Old failed run41252917392 was not retried.
+Next: user downloads/tests when the fresh build completes; no full-compile wait
+requested. No tag/release, local EXE build or gameplay ROM output.
