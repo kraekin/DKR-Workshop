@@ -28,6 +28,7 @@
   selection still works across directories.
 - **Dependency and animation review:** locked Windows build dependencies and
   concise pinned runtime requirements; About balloons use OS-backed randomness.
+  Windows compilation uses Nuitka 4.3.3.
 
 Existing projects remain compatible. Minimap generation replaces an existing
 sprite's first-frame pixels; batch images retain existing dimensions, formats,

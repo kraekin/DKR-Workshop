@@ -3,7 +3,7 @@
 [Windows Nuitka build](https://github.com/kraekin/DKR-Workshop/actions/workflows/windows-build.yml)
 compiles a self-contained Windows x64 EXE on GitHub's Windows runners. No local
 Nuitka compile, ROM, extracted assets, signing certificate or personal token is
-needed. The build uses CPython 3.12, MSVC, the PySide6 plugin, the existing icon
+needed. The build uses Nuitka 4.3.3, CPython 3.12, MSVC, the PySide6 plugin, the existing icon
 and the hashed transitive dependency lock in `pylock.toml`.
 
 ## Build the current code without making a release

@@ -18,8 +18,8 @@ wheels = [{ url = "https://files.pythonhosted.org/packages/cb/b1/3846dd7f199d53c
 
 [[packages]]
 name = "nuitka"
-version = "4.2.1"
-sdist = { url = "https://files.pythonhosted.org/packages/c7/ce/38409fc853cc26d86ab71ccd53f7dfddbc7a84d4821b9b54db428b35779b/nuitka-4.2.1.tar.gz", upload-time = 2026-09-05T08:08:19Z, size = 4632551, hashes = { sha256 = "815c6e571a7a6424af384fe9d95d4ba38f1634d39a5515e8094d7fbfa090cbcb" } }
+version = "4.3.3"
+sdist = { url = "https://files.pythonhosted.org/packages/c0/5b/b3ec9a3373f1f1ad546d31101b41fb07befee7ecf734bab6c75a935b43bf/nuitka-4.3.3.tar.gz", upload-time = 2026-10-29T19:25:50Z, size = 4779258, hashes = { sha256 = "3bed65735d5cfc53dc13070f9f17c52dbe584c0f03de32b6ef011f5db674add9" } }
 
 [[packages]]
 name = "numpy"
