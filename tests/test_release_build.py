@@ -59,22 +59,20 @@ def test_build_lock_pins_inputs_and_hashes_every_artifact() -> None:
             assert re.fullmatch(r'[0-9a-f]{64}', artifact['hashes']['sha256'])
 
 
-def test_hashed_runtime_requirements_match_build_lock() -> None:
+def test_runtime_requirements_match_build_lock() -> None:
     lock = tomllib.loads((ROOT / 'pylock.toml').read_text(encoding='utf-8'))
     packages = {_package_name(p['name']): p for p in lock['packages']}
-    text = (ROOT / 'requirements.txt').read_text().replace('\\\n', ' ')
+    text = (ROOT / 'requirements.txt').read_text()
     runtime: set[str] = set()
     for line in text.splitlines():
         if not line.strip() or line.lstrip().startswith('#'):
             continue
-        name, version = line.split()[0].split('==')
+        match = re.fullmatch(r'([A-Za-z0-9_.-]+)==([A-Za-z0-9_.+-]+)', line)
+        assert match is not None, line
+        name, version = match.groups()
         name = _package_name(name)
         package = packages[name]
         assert version == package['version']
-        hashes = set(re.findall(r'--hash=sha256:([0-9a-f]{64})', line))
-        assert hashes, name
-        artifacts = package.get('wheels', []) + ([package['sdist']] if 'sdist' in package else [])
-        assert {a['hashes']['sha256'] for a in artifacts} <= hashes
         runtime.add(name)
     project = tomllib.loads((ROOT / 'pyproject.toml').read_text())
     required = {_package_name(re.split(r'[<>=!~\[]', d)[0]) for d in project['project']['dependencies']}

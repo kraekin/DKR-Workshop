@@ -27,7 +27,7 @@
   the selected asset root, including linked paths. Explicit ROM/project file
   selection still works across directories.
 - **Dependency and animation review:** locked Windows build dependencies and
-  hashed runtime requirements; About balloons use OS-backed randomness.
+  concise pinned runtime requirements; About balloons use OS-backed randomness.
 
 Existing projects remain compatible. Minimap generation replaces an existing
 sprite's first-frame pixels; batch images retain existing dimensions, formats,

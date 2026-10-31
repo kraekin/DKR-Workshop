@@ -36,7 +36,7 @@ From the project directory in PowerShell:
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
-python -m pip install --require-hashes --only-binary=:all: -r requirements.txt
+python -m pip install -r requirements.txt
 python -m src.main
 ```
 
@@ -227,7 +227,7 @@ logic; `src/renderer/` handles OpenGL and camera behavior; `src/ui/` contains Qt
 widgets. The local decomp checkout provides authoritative format references.
 No proprietary ROM data belongs in source control.
 
-Runtime requirements are pinned with hashes. The complete Windows/Python 3.12
+Runtime requirements list exact versions. The complete hashed Windows/Python 3.12
 runtime, test and Nuitka toolchain is locked in `pylock.toml`; see
 [locked setup and updates](docs/WINDOWS_BUILDS.md#dependency-locks) for installing
 the test/build environment and deliberately updating dependencies.

@@ -71,9 +71,9 @@ packages and artifact SHA-256 hashes. CI installs this file directly. The
 bootstrap uv version is pinned too, and isolated source-build dependencies are
 constrained by `.github/requirements-build.txt`.
 
-For runtime-only source installation, `requirements.txt` contains matching pinned
-runtime versions and artifact hashes; use `pip install --require-hashes
---only-binary=:all: -r requirements.txt`. These wheels avoid implicit source builds.
+For runtime-only source installation, `requirements.txt` contains matching exact
+runtime versions; use `pip install -r requirements.txt`. Artifact hashes stay in
+`pylock.toml`, which CI consumes directly.
 The full toolchain lock targets the supported release environment; regenerate
 and verify an appropriate lock before changing its Python/platform target.
 
@@ -87,7 +87,7 @@ runtime choices within `pyproject.toml`, then regenerate both files with uv 0.11
 
 ```powershell
 uv --no-config pip compile pyproject.toml .github/requirements-build.txt --extra dev --python .venv/Scripts/python.exe --python-version 3.12 --python-platform x86_64-pc-windows-msvc --default-index https://pypi.org/simple --format pylock.toml --output-file pylock.toml
-uv --no-config pip compile pyproject.toml --constraint .github/requirements-build.txt --python .venv/Scripts/python.exe --python-version 3.12 --python-platform x86_64-pc-windows-msvc --default-index https://pypi.org/simple --generate-hashes --output-file requirements.txt
+uv --no-config pip compile pyproject.toml --constraint .github/requirements-build.txt --python .venv/Scripts/python.exe --python-version 3.12 --python-platform x86_64-pc-windows-msvc --default-index https://pypi.org/simple --no-header --no-annotate --output-file requirements.txt
 ```
 
 Review package/version/hash changes, install into a fresh environment, run the
