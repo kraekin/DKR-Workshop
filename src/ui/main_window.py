@@ -13,6 +13,7 @@ from PySide6.QtWidgets import QApplication, QDockWidget, QFileDialog, QLabel, QM
 
 from src import __version__
 from src.ui.deferred_edits import flush_edits
+from src.ui.wheel_guard import install_wheel_guard
 from src.core.level_header import LevelCatalog, LevelEntry, load_level_catalog
 from src.core.rom import DecompAssets, RomImage, AssetType
 from src.core.level_model import LevelModel, ModelError, load_level_model
@@ -60,6 +61,7 @@ from src.ui.about_window import AboutDialog
 class MainWindow(QMainWindow):
     def __init__(self) -> None:
         super().__init__()
+        install_wheel_guard(QApplication.instance())
         self.setObjectName("dkrMainWindow")
         self.catalog: LevelCatalog | None = None
         self.selected_level: LevelEntry | None = None
