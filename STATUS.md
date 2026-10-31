@@ -19,5 +19,9 @@ Preflight: actionlint1.7.12 passes with no findings; all12 ROM-free camera/relea
 checks pass; source --help starts; application/build Python syntax passes; diff
 whitespace check passes. Tracked-file audit finds no ROMs, exports or binaries.
 
-Next: commit/push main and run/verify the first hosted build. Record the real run
-result before declaring setup complete. No ROM/emulator CI tests or new tag yet.
+All five local commits pushed to origin/main through ed3780f. GitHub registered
+the workflow; first manual run: https://github.com/kraekin/DKR-Workshop/actions/runs/41158499075
+The first hosted preflight found a fresh-checkout issue: pytest's configured
+artifacts/pytest base needs its parent directory created before tests. Workflow
+now creates artifacts explicitly. Next: verify a fresh source copy, push the fix,
+rerun the hosted build and verify its downloaded EXE. No ROM/emulator CI or tag.
