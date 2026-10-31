@@ -24,6 +24,7 @@ from src.core.object_models import ObjectLibrary, model_instances, animation_spr
 from src.core.special_art import SpecialLibrary
 
 from src.renderer.viewport import Viewport
+from src.renderer.camera import ground_placement
 from src.ui.level_panel import LevelPanel
 from src.ui.object_inspector import ObjectInspector
 from src.ui.toolbar import AnimationToolbar, CameraToolbar, RenderToolbar, SpecialArtworkToolbar, EnvironmentToolbar
@@ -1530,8 +1531,14 @@ class MainWindow(QMainWindow):
         self.viewport.finish_object_drag()
         if self.edit_session is None or self.selected_level is None:
             return
-        selected = self._selected_entries()
-        position = selected[0].position if selected else tuple(int(np.clip(round(float(v)), -32768, 32767)) for v in self.viewport.camera.target)
+        position = None
+        if self.current_model is not None:
+            position = ground_placement(self.viewport.camera, self._terrain(), self.viewport.width(), self.viewport.height())
+        if position is None:
+            message = 'No ground is visible in front of the camera. Aim at the track before adding an object.'
+            self.object_inspector.edit_message.setText(message)
+            self.statusBar().showMessage(message, 10000)
+            return
         dialog = ObjectPalette(self.edit_session, self.selected_level.index, position, self)
         if dialog.exec() == ObjectPalette.DialogCode.Accepted:
             try:

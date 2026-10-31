@@ -209,3 +209,39 @@ class TerrainSurface:
         if not -32768 <= height <= 32767:
             raise ValueError("Surface placement exceeds signed16 height")
         return height
+
+    def grounded_position(self, origin: FloatArray, direction: FloatArray) -> tuple[int, int, int] | None:
+        """Visible non-wall ground, rounded above its local surface layer.
+
+        This is an editor placement rule, independent of game collision. Reject
+        upward/underside hits and walls instead of placing through them. Repeat
+        the height query after rounding X/Z so a slope cannot bury the origin.
+        """
+        start, ray = np.asarray(origin, np.float64), np.asarray(direction, np.float64)
+        hit = self.raycast(start, ray)  # Also validates the input, even for empty terrain.
+        if hit is None or ray[1] > 1e-8:
+            return None
+        normals = np.cross(self.triangles[:, 1]-self.triangles[:, 0],
+                           self.triangles[:, 2]-self.triangles[:, 0])
+        ground = TerrainSurface(self.triangles[np.abs(normals[:, 1]) > .25*np.linalg.norm(normals, axis=1)])
+        floor = ground.raycast(start, ray)
+        if floor is None or np.linalg.norm(floor-hit) > .01:
+            return None
+        x, z = int(np.rint(floor[0])), int(np.rint(floor[2]))
+        if not (-32768 <= x <= 32767 and -32768 <= z <= 32767):
+            return None
+        # Search both directions near the clicked layer; never jump to a distant
+        # roof just because it is the highest triangle in this X/Z column.
+        column = np.array((x, floor[1], z), np.float64)
+        below = ground.raycast(column+np.array((0., 1e-6, 0.)), np.array((0., -1., 0.)))
+        above = ground.raycast(column-np.array((0., 1e-6, 0.)), np.array((0., 1., 0.)))
+        candidates = [p for p in (below, above) if p is not None]
+        if not candidates:
+            return None
+        point = min(candidates, key=lambda p: abs(float(p[1]-floor[1])))
+        # At most ~3.5 units of slope change can result from rounding half a
+        # unit on X/Z at the accepted slope limit. Larger differences are gaps.
+        if abs(float(point[1]-floor[1])) > 4.:
+            return None
+        y = math.ceil(float(point[1])-1e-7)+1
+        return (x, y, z) if -32768 <= y <= 32767 else None

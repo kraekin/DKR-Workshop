@@ -1,6 +1,6 @@
 # DKR Workshop
 
-**v0.27.0 · Public beta**
+**v0.27.1 · Public beta**
 
 [What's new: visual object catalog and complete object artwork export](docs/RELEASE_NOTES_0.27.0.md).
 
@@ -106,6 +106,8 @@ The right inspector has **Level**, **Objects**, **Geometry**, **Settings** and
 
 **Add…** opens a visual catalog with ROM-derived thumbnail cards, name/ID/category
 search, category filters and a larger sprite or interactive 3D artwork preview.
+New objects default to the ground in the centre of the camera view, with visible
+ground below the centre as a fallback. Aim at the track if no ground is found.
 Choose a target map, position and template, then Add. See
 [Visual object catalog](docs/VISUAL_OBJECT_CATALOG.md).
 

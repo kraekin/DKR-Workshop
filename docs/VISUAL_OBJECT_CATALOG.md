@@ -19,6 +19,14 @@ selected preview follows the chosen template's model/balloon fields. It does not
 run behavior initialization, progression or physics. Unavailable artwork does
 not prevent adding the object.
 
+In v0.27.1, XYZ defaults to the ground hit at the centre of the main camera view,
+regardless of the selected object. If the centre misses, the search follows the
+same centre line lower in the view; Front/Right views use visible ground at the
+centre's viewing depth. Walls and ground hidden behind walls are rejected. X/Z
+round to game units, and the origin sits just above that layer after rounding,
+so a slope does not bury it. If no suitable ground is found, aim at the track
+and try Add again. You can still change XYZ explicitly before adding.
+
 Choose **Target map**, XYZ and **Preferred template** or **Zeroed schema
 defaults**, then click **Add object** or double-click a card. Preferred templates
 retain the existing stock placement values. Zeroed defaults remain explicitly

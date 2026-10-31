@@ -1,6 +1,6 @@
 # DKR Workshop
 
-**Version 0.27.0 · Public beta · Python script release**
+**Version 0.27.1 · Public beta · Python script release**
 
 DKR Workshop is a desktop level, track and asset editor for **Diddy Kong Racing
 on Nintendo 64**. Explore the original courses, rearrange objects, create custom

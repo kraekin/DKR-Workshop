@@ -15,6 +15,7 @@ WORLD_UP: FloatArray = np.array([0.0, 1.0, 0.0], dtype=np.float32)
 if TYPE_CHECKING:
     from src.core.textures import SpriteInstance
     from src.core.level_model import LevelModel
+    from src.core.placement import TerrainSurface
 
 
 def normalized(vector: FloatArray) -> FloatArray:
@@ -161,6 +162,42 @@ def screen_ray(x: float, y: float, width: float, height: float,
     first = inverse @ ndc; ndc[2]=1;last=inverse @ ndc
     first=first[:3]/first[3];last=last[:3]/last[3]
     return first, normalized(last-first)
+
+
+def ground_placement(camera: Camera, terrain: TerrainSurface, width: float,
+                     height: float) -> tuple[int, int, int] | None:
+    """Place in the view centre, or on visible ground below that centre line.
+
+    Look/flight targets are navigation anchors, not surface coordinates. Side
+    orthographic views need a vertical query at the centre's viewing depth,
+    followed by a visibility check against the actual camera ray.
+    """
+    if not math.isfinite(width) or not math.isfinite(height) or width <= 0 or height <= 0:
+        raise ValueError('Viewport dimensions must be positive and finite')
+    matrix = camera.projection_matrix(width/height) @ camera.view_matrix()
+    for fraction in (.5, .55, .6, .65, .7, .75, .8, .85, .9, .95):
+        origin, direction = screen_ray(width*.5, height*fraction, width, height, matrix)
+        point = terrain.grounded_position(origin, direction)
+        if point is not None:
+            pixel = project_point(np.asarray(point), matrix, width, height)
+            if pixel is not None and 0 <= pixel[0] <= width and 0 <= pixel[1] <= height:
+                return point
+    if camera.view not in ('Front', 'Right'):
+        return None
+    depth = max(float(np.dot(camera.target-camera.position, camera.forward)), camera.near)
+    column = np.asarray(camera.position+camera.forward*depth, np.float64)
+    column[1] = float(camera.position[1])+camera.ortho_height*.5
+    point = terrain.grounded_position(column, np.array((0., -1., 0.)))
+    if point is None:
+        return None
+    pixel = project_point(np.asarray(point), matrix, width, height)
+    if pixel is None or not (0 <= pixel[0] <= width and 0 <= pixel[1] <= height):
+        return None
+    origin, direction = screen_ray(*pixel, width, height, matrix)
+    obstruction = terrain.raycast(origin, direction)
+    if obstruction is not None and np.dot(obstruction-origin, direction) < np.dot(np.asarray(point)-origin, direction)-.01:
+        return None
+    return point
 
 
 def pick_track_vertex(model: LevelModel, x: float, y: float, width: float, height: float,

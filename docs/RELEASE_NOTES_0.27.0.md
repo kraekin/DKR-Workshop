@@ -1,5 +1,11 @@
 # DKR Workshop 0.27.0 — creator workflow
 
+**0.27.1 placement fix:** Add Objects now starts on visible ground in front of
+the camera, prioritizing the view centre, instead of a selected object's position
+or the navigation target. Lower-centre ground is used if the centre misses;
+walls, hidden ground and unrepresentable positions are rejected. Explicit XYZ
+edits in the catalog remain available.
+
 - **Visual Add Objects catalog:** browse all 304 types as thumbnail cards;
   search by name, ID, category or behavior; filter categories; inspect a larger
   sprite/image or interactive 3D reference preview before placing an object.
